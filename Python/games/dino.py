@@ -56,7 +56,7 @@ def game():
         window.update()
         window.after(5)
 
-    text = canvas.create_text(700, 400, text=f"Game Over\nScore: {1}", font=("Arial", 36), fill="Red")
+    text = canvas.create_text(700, 400, text=f"Game Over\nScore: {(10*(game_speed-10)):.0f}", font=("Arial", 36), fill="Red")
 
     window.mainloop()
 
