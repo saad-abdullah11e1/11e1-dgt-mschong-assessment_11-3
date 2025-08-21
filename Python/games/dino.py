@@ -1,99 +1,107 @@
 import tkinter as tk
 import random
 
-quit = False
+class Game:
+    quit = False
 
-floor = None
-obstacle = None
+    obstacles = []
 
-velocity = 0
-GRAVITY = 0.4
-JUMP_VELOCITY = -10
+    velocity = 0
+    GRAVITY = 0.4
+    JUMP_VELOCITY = -10
 
-game_speed = 10
+    game_speed = 10
 
-def game():
-    global game_speed
-    window = tk.Tk()
 
-    window.title("Game")
 
-    window.resizable(False, False)
+    window: tk.Tk
 
-    canvas = tk.Canvas(window, width=1400, height=800, background='white')
+    canvas: tk.Canvas
 
-    canvas.pack()
+    floor: int
 
-    floor = canvas.create_rectangle(0, 600, 1400, 2000, fill='black')
+    score_label: int
 
-    score_label = canvas.create_text(700, 50, text="Score: 0", font=("Arial", 24), fill="black")
+    obstacles = []
 
-    obstacle_width = random.randint(50, 150)
+    player: int
+    
+    def __init__(self):
+        self.window = tk.Tk()
 
-    obstacle = canvas.create_rectangle(1000, 550, 1000+obstacle_width, 600, fill='red', outline='red')
+        self.window.title("Game")
 
-    obstacle_width = random.randint(50, 150)
+        self.window.resizable(False, False)
 
-    obstacle2 = canvas.create_rectangle(2500, 550, 2500+obstacle_width, 600, fill='red', outline='red')
+        self.canvas = tk.Canvas(self.window, width=1400, height=800, background='white')
 
-    player = canvas.create_rectangle(100, 550, 150, 600, fill='blue', outline='blue')
-    window.bind('<space>', lambda event: player_jump())
-    window.bind('<Down>', lambda event: player_duck())
+        self.canvas.pack()
 
-    while True:
-        canvas.itemconfig(score_label, text=f"Score: {(10*(game_speed-10)):.0f}")
+        self.floor = self.canvas.create_rectangle(0, 600, 1400, 2000, fill='black')
 
-        move_obstacle(canvas, obstacle, player)
-        move_obstacle(canvas, obstacle2, player)
+        self.score_label = self.canvas.create_text(700, 50, text="Score: 0", font=("Arial", 24), fill="black")
 
-        player_physics(canvas, player)
-
-        if quit == True:
-            break
-
-        game_speed += 0.005
-
-        window.update()
-        window.after(5)
-
-    text = canvas.create_text(700, 400, text=f"Game Over\nScore: {(10*(game_speed-10)):.0f}", font=("Arial", 36), fill="Red")
-
-    window.mainloop()
-
-def move_obstacle(canvas, obstacle, player):
-    global quit
-    canvas.move(obstacle, -game_speed, 0)
-    if canvas.coords(obstacle)[0] < -150:
         obstacle_width = random.randint(50, 150)
-        canvas.coords(obstacle, 1400, 550, 1400 + obstacle_width, 600)
-        canvas.move(obstacle, 1400, 0)
+
+        self.obstacles = [self.canvas.create_rectangle(1000, 550, 1000+obstacle_width, 600, fill='red', outline='red')]
+
+        self.player = self.canvas.create_rectangle(100, 550, 150, 600, fill='blue', outline='blue')
+
+        self.window.bind('<space>', lambda event: self.player_jump())
+        self.window.bind('<Down>', lambda event: self.player_duck())
+
+    def game(self):
+        while True:
+            self.canvas.itemconfig(self.score_label, text=f"Score: {(10*(self.game_speed-10)):.0f}")
+
+            for obstacle in self.obstacles:
+                self.move_obstacle(obstacle)
+
+            self.player_physics()  
+
+            if self.quit == True:
+                break
+
+            self.game_speed += 0.005
+
+            self.window.update()
+            self.window.after(5)
+
+        text = self.canvas.create_text(700, 400, text=f"Game Over\nScore: {(10*(self.game_speed-10)):.0f}", font=("Arial", 36), fill="Red")
+
+        self.window.mainloop()
+
+
+    def move_obstacle(self, obstacle):
+        self.canvas.move(obstacle, -self.game_speed, 0)
+        if self.canvas.coords(obstacle)[0] < -150:
+            # canvas.delete(obstacle)
+            # self.obstacles.remove(obstacle)
+            self.canvas.move(obstacle, 1000, 0)
+
+        obstacle = self.canvas.bbox(obstacle)
+        if obstacle == None: return
+        overlapping_items = self.canvas.find_overlapping(*obstacle)
+        if self.player in overlapping_items:
+            self.quit = True
+
+
+    def player_physics(self):
+        self.canvas.move(self.player, 0, self.velocity)
+
+        if self.canvas.coords(self.player)[1] < 550:
+            self.velocity += self.GRAVITY
+        else:
+            self.velocity = 0
+            self.canvas.move(self.player, 0, 550 - self.canvas.coords(self.player)[1])
     
-    obstacle = canvas.bbox(obstacle)
-    overlapping_items = canvas.find_overlapping(*obstacle)
-    if player in overlapping_items:
-        quit = True
 
+    def player_jump(self):
+        if self.velocity == 0:
+            self.velocity = self.JUMP_VELOCITY
 
-def player_physics(canvas, player, ):
-    global velocity
-    global quit
-    canvas.move(player, 0, velocity)
-
-    if canvas.coords(player)[1] < 550:
-        velocity += GRAVITY
-    else:
-        velocity = 0
-        canvas.move(player, 0, 550 - canvas.coords(player)[1])
-    
-
-def player_jump():
-    global velocity
-    if velocity == 0:
-        velocity = JUMP_VELOCITY
-
-def player_duck():
-    global velocity
-    velocity = -2 * JUMP_VELOCITY
+    def player_duck(self):
+        self.velocity = -2 * self.JUMP_VELOCITY
 
 if __name__ == "__main__":
-    game()
+    Game().game()

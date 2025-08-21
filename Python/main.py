@@ -6,7 +6,7 @@ window = tk.Tk()
 window.title("Hello World App")
 
 def button_click(button):
-  games.dino.game()
+    games.dino.Game().game()
 
 button = tk.Button(window, text="Click Me!", command=lambda: button_click(button))
 button.pack(pady=20)
