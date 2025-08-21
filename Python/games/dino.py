@@ -74,16 +74,19 @@ class Game:
 
     def move_obstacle(self, obstacle):
         self.canvas.move(obstacle, -self.game_speed, 0)
-        if self.canvas.coords(obstacle)[0] < -150:
-            # canvas.delete(obstacle)
-            # self.obstacles.remove(obstacle)
-            self.canvas.move(obstacle, 1000, 0)
+        
+        obstacle_box = self.canvas.bbox(obstacle)
 
-        obstacle = self.canvas.bbox(obstacle)
-        if obstacle == None: return
-        overlapping_items = self.canvas.find_overlapping(*obstacle)
+        overlapping_items = self.canvas.find_overlapping(*obstacle_box)
         if self.player in overlapping_items:
             self.quit = True
+        
+        if self.canvas.coords(obstacle)[0] < -150:
+            self.canvas.delete(obstacle)
+            self.obstacles.remove(obstacle)
+            # self.canvas.move(obstacle, 1000, 0)
+
+        
 
 
     def player_physics(self):
