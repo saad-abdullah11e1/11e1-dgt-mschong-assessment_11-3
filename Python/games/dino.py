@@ -3,16 +3,16 @@ import random
 import tktimer
 
 class Game:
+    GRAVITY = 0.4
+    JUMP_VELOCITY = -12.5
+    GAME_PACE = 0.005
+    GAME_SPEED = 10
+
     quit = False
 
     obstacles = []
 
     velocity = 0
-
-    GRAVITY = 0.4
-    JUMP_VELOCITY = -12.5
-    GAME_PACE = 0.005
-    GAME_SPEED = 10
 
     game_speed = GAME_SPEED
 
@@ -81,7 +81,17 @@ class Game:
             self.window.update()
             self.window.after(5)
 
-        text = self.canvas.create_text(700, 400, text=f"Game Over\nScore: {(10*(self.game_speed-self.GAME_SPEED)):.0f}", font=("Arial", 36), fill="Red")
+        with open("dino_highscore.txt") as f:
+            highscore = f.read()
+
+        if int(highscore) < int(10*(self.game_speed-self.GAME_SPEED)):
+            with open("dino_highscore.txt", "w") as f:
+                highscore = f"{(10*(self.game_speed-self.GAME_SPEED)):.0f}"
+                f.write(highscore)
+        
+
+
+        text = self.canvas.create_text(700, 400, text=f"Game Over\nScore: {(10*(self.game_speed-self.GAME_SPEED)):.0f}\nHighscore: {highscore}", font=("Arial", 36), fill="Red")
 
         self.window.mainloop()
 
@@ -99,8 +109,6 @@ class Game:
             self.canvas.delete(obstacle)
             self.obstacles.remove(obstacle)
             # self.canvas.move(obstacle, 1000, 0)
-
-        
 
 
     def player_physics(self):
