@@ -1,37 +1,27 @@
 import tkinter as tk
 import random
-import tktimer
+import time
+from . import tktimer
 
 class Game:
     GRAVITY = 0.4
     JUMP_VELOCITY = -12.5
-    GAME_PACE = 0.005
-    GAME_SPEED = 10
-
-    quit = False
-
-    obstacles = []
-
-    velocity = 0
-
-    game_speed = GAME_SPEED
-
-
-
-    window: tk.Tk
-
-    canvas: tk.Canvas
-
-    floor: int
-
-    score_label: int
-
-    obstacles = []
-
-    player: int
+    GAME_PACE = 0.0025
+    GAME_SPEED = 5
     
-    def __init__(self):
-        self.window = tk.Tk()
+    def __init__(self, root: tk.Tk):
+        self.quit = False
+
+        self.velocity = 0
+
+        self.game_speed = self.GAME_SPEED
+
+        self.obstacles = []
+
+        self.root = root
+
+        self.window = tk.Toplevel(self.root)
+        self.window.focus()
 
         self.window.title("Game")
 
@@ -57,10 +47,10 @@ class Game:
 
         while True:
             if obstacle_spawn_timer.finished():
-                obstacle_spawn_timer = tktimer.Timer(random.randint(10, int((self.game_speed+self.GAME_SPEED)/2))/10)
+                obstacle_spawn_timer = tktimer.Timer(random.randint(10, 20 )/10)
 
                 obstacle_width = random.randint(50, 150)
-                obstacle_height = random.randint(50, 150)
+                obstacle_height = random.randint(50, 200-obstacle_width)
 
                 obstacle = self.canvas.create_rectangle(1500, 600, 1500+obstacle_width, 600-obstacle_height, fill='red', outline='red')
 
@@ -92,10 +82,13 @@ class Game:
 
 
         text = self.canvas.create_text(700, 400, text=f"Game Over\nScore: {(10*(self.game_speed-self.GAME_SPEED)):.0f}\nHighscore: {highscore}", font=("Arial", 36), fill="Red")
+        
+        self.window.bind('<space>', lambda event: self.restart())
 
-        self.window.mainloop()
+        self.window.wait_window()
+        self.window.destroy()
 
-
+        
     def move_obstacle(self, obstacle):
         self.canvas.move(obstacle, -self.game_speed, 0)
         
@@ -130,6 +123,13 @@ class Game:
 
     def player_duck(self):
         self.velocity = -2 * self.JUMP_VELOCITY
+    
+    def restart(self):
+        old_window = self.window
+        self.__init__(self.root)
+        old_window.destroy()
+        self.game()
+        
 
 if __name__ == "__main__":
     Game().game()
