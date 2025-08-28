@@ -4,9 +4,12 @@ import time
 from . import tktimer
 
 class Game:
+    WIDTH = 1400
+    HEIGHT = 800
+
     GRAVITY = 0.4
     JUMP_VELOCITY = -12.5
-    GAME_PACE = 0.0025
+    GAME_PACE = 0.00025
     GAME_SPEED = 5
     
     def __init__(self, root: tk.Tk):
@@ -27,13 +30,13 @@ class Game:
 
         self.window.resizable(False, False)
 
-        self.canvas = tk.Canvas(self.window, width=1400, height=800, background='white')
+        self.canvas = tk.Canvas(self.window, width=self.WIDTH, height=self.HEIGHT, background='white')
 
         self.canvas.pack()
 
-        self.floor = self.canvas.create_rectangle(0, 600, 1400, 2000, fill='black')
+        self.floor = self.canvas.create_rectangle(0, self.HEIGHT-200, self.WIDTH, self.HEIGHT, fill='black')
 
-        self.score_label = self.canvas.create_text(700, 50, text="Score: 0", font=("Arial", 24), fill="black")
+        self.score_label = self.canvas.create_text(self.WIDTH/2, 50, text="Score: 0", font=("Arial", 24), fill="black")
 
         self.player = self.canvas.create_rectangle(100, 550, 150, 600, fill='blue', outline='blue')
 
@@ -43,11 +46,11 @@ class Game:
         self.window.bind('<Down>', lambda event: self.player_duck())
 
     def game(self):
-        obstacle_spawn_timer = tktimer.Timer(1)
+        obstacle_spawn_timer = tktimer.Timer(random.randint(int(10-self.game_speed/10), 20)/10)
 
         while True:
             if obstacle_spawn_timer.finished():
-                obstacle_spawn_timer = tktimer.Timer(random.randint(10, 20 )/10)
+                obstacle_spawn_timer = tktimer.Timer(random.randint(int(10-self.game_speed/10), 20)/10)
 
                 obstacle_width = random.randint(50, 150)
                 obstacle_height = random.randint(50, 200-obstacle_width)
@@ -66,7 +69,7 @@ class Game:
             if self.quit == True:
                 break
 
-            self.game_speed += self.GAME_PACE
+            self.game_speed += self.GAME_PACE*self.game_speed
 
             self.window.update()
             self.window.after(5)
