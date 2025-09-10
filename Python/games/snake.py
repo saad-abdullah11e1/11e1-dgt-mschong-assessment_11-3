@@ -7,9 +7,9 @@ class Game:
     WIDTH = 600
     HEIGHT = 600
 
-    CELL_SIZE = 20
+    CELL_SIZE = 40
 
-    GAME_SPEED = 500
+    GAME_SPEED = 175
 
     CELLY = int(HEIGHT/CELL_SIZE)
     CELLX = int(WIDTH/CELL_SIZE)
@@ -49,43 +49,63 @@ class Game:
         self.snake.append(self.canvas.create_rectangle(x1, y1, x2, y2, fill="#00FF00", outline='#00FF00'))
 
         self.direction = (1, 0)
+        self.new_direction = (1, 0)
 
-        (x1, y1, x2, y2) = self.get_cell_coord(random.randint(0, self.CELLX), random.randint(0, self.CELLy)) 
-        self.canvas.create_rectangle(x1, y1, x2, y2, fill="#FF0000", outline="#FF0000")
+        (x1, y1, x2, y2) = self.get_cell_coord(random.randint(0, self.CELLX-1), random.randint(0, self.CELLY-1)) 
+        self.apple = self.canvas.create_rectangle(x1, y1, x2, y2, fill="#FF0000", outline="#FF0000")
 
         self.window.bind('<Down>', lambda event: self.change_direction(0, 1))
         self.window.bind('<Up>', lambda event: self.change_direction(0, -1))
         self.window.bind('<Left>', lambda event: self.change_direction(-1, 0))
         self.window.bind('<Right>', lambda event: self.change_direction(1, 0))
 
+        self.score_label = self.canvas.create_text(self.WIDTH/2, 50, text="Score: 0", font=("Arial", 24), fill="black")
+
     def game(self):
-        game_tick_timer = tktimer.Timer(self.game_speed/1000)
+        self.game_tick_timer = tktimer.Timer(self.game_speed/1000)
 
         while True:
+            self.direction = self.new_direction
+
+            self.canvas.tag_raise(self.score_label)
+            self.canvas.itemconfig(self.score_label, text=f"Score: {(len(self.snake)):.0f}")
+
             if self.quit == True:
                 break
-            
-            if game_tick_timer.finished():
-                game_tick_timer = tktimer.Timer(self.game_speed/1000)
+            self.game_tick_timer = tktimer.Timer(self.game_speed/1000)
 
-                staged_moves = []
+            staged_moves = []
 
-                for (i, box) in enumerate(self.snake[1:]):
-                    print(i)
-                    (x1, y1, _, _) = self.canvas.coords(self.snake[i])
-                    (x, y, _, _) = self.canvas.coords(box)
+            for (i, box) in enumerate(self.snake[1:]):
+                (x1, y1, _, _) = self.canvas.coords(self.snake[i])
+                (x, y, _, _) = self.canvas.coords(box)
 
-                    print(x1)
-                    print(x)
-
-                    staged_moves.append((box, x1-x, y1-y))
+                staged_moves.append((box, x1-x, y1-y))
                 
-                self.canvas.move(self.snake[0], self.direction[0]*self.CELL_SIZE, self.direction[1]*self.CELL_SIZE)
-                for move in staged_moves:
-                    self.canvas.move(*move)
+            self.canvas.move(self.snake[0], self.direction[0]*self.CELL_SIZE, self.direction[1]*self.CELL_SIZE)
+            for move in staged_moves:
+                self.canvas.move(*move)
+                
+            if self.canvas.coords(self.snake[0]) == self.canvas.coords(self.apple):
+                self.canvas.delete(self.apple)
+
+                (x1, y1, x2, y2) = self.canvas.coords(self.snake[-1])
+                self.snake.append(self.canvas.create_rectangle(x1, y1, x2, y2, fill="#00FF00", outline='#00FF00'))
+
+                (x1, y1, x2, y2) = self.get_cell_coord(random.randint(0, self.CELLX-1), random.randint(0, self.CELLY-1)) 
+                self.apple = self.canvas.create_rectangle(x1, y1, x2, y2, fill="#FF0000", outline="#FF0000")
+
+            for part in self.snake[1:]:
+                if self.canvas.coords(self.snake[0]) == self.canvas.coords(part):
+                    self.quit = True
+
+            (x1, y1, x2, y2) = self.canvas.coords(self.snake[0])
+
+            if x1 < 0 or x2 > self.WIDTH or y1 < 0 or y2 > self.HEIGHT:
+                self.quit = True
 
             self.window.update()
-            self.window.after(5)
+            self.window.after(self.game_speed)
 
         self.window.wait_window()
         self.window.destroy()
@@ -95,7 +115,7 @@ class Game:
 
     def change_direction(self, x, y):
         if -x == self.direction[0] or -y == self.direction[1]: return
-        self.direction = (x, y)
+        self.new_direction = (x, y)
 
     def restart(self):
         old_window = self.window
