@@ -49,7 +49,7 @@ class Game:
         self.snake.append(self.canvas.create_rectangle(x1, y1, x2, y2, fill="#00FF00", outline='#00FF00'))
 
         self.direction = (1, 0)
-        self.new_direction = (1, 0)
+        self.new_directions = [(1, 0)]
 
         (x1, y1, x2, y2) = self.get_cell_coord(random.randint(0, self.CELLX-1), random.randint(0, self.CELLY-1)) 
         self.apple = self.canvas.create_rectangle(x1, y1, x2, y2, fill="#FF0000", outline="#FF0000")
@@ -65,7 +65,8 @@ class Game:
         self.game_tick_timer = tktimer.Timer(self.game_speed/1000)
 
         while True:
-            self.direction = self.new_direction
+            self.direction = self.new_direction[0]
+            
 
             self.canvas.tag_raise(self.score_label)
             self.canvas.itemconfig(self.score_label, text=f"Score: {(len(self.snake)):.0f}")
