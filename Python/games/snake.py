@@ -66,7 +66,8 @@ class Game:
                 game_tick_timer = tktimer.Timer(self.game_speed/1000)
 
                 for (i, box) in enumerate(self.snake[1:]):
-                    (x1, y1, _, _) = self.canvas.coords(self.snake[i-2])
+                    print(i)
+                    (x1, y1, _, _) = self.canvas.coords(self.snake[i])
                     (x, y, _, _) = self.canvas.coords(box)
 
                     print(x1)
