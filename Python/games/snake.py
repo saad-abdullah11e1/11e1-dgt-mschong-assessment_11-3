@@ -50,6 +50,9 @@ class Game:
 
         self.direction = (1, 0)
 
+        (x1, y1, x2, y2) = self.get_cell_coord(random.randint(0, self.CELLX), random.randint(0, self.CELLy)) 
+        self.canvas.create_rectangle(x1, y1, x2, y2, fill="#FF0000", outline="#FF0000")
+
         self.window.bind('<Down>', lambda event: self.change_direction(0, 1))
         self.window.bind('<Up>', lambda event: self.change_direction(0, -1))
         self.window.bind('<Left>', lambda event: self.change_direction(-1, 0))
@@ -65,6 +68,8 @@ class Game:
             if game_tick_timer.finished():
                 game_tick_timer = tktimer.Timer(self.game_speed/1000)
 
+                staged_moves = []
+
                 for (i, box) in enumerate(self.snake[1:]):
                     print(i)
                     (x1, y1, _, _) = self.canvas.coords(self.snake[i])
@@ -73,9 +78,11 @@ class Game:
                     print(x1)
                     print(x)
 
-                    self.canvas.move(box, x1-x, y1-y)
+                    staged_moves.append((box, x1-x, y1-y))
                 
                 self.canvas.move(self.snake[0], self.direction[0]*self.CELL_SIZE, self.direction[1]*self.CELL_SIZE)
+                for move in staged_moves:
+                    self.canvas.move(*move)
 
             self.window.update()
             self.window.after(5)
