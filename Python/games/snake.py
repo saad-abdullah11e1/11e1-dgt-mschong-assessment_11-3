@@ -14,7 +14,7 @@ class Game:
     CELLY = int(HEIGHT/CELL_SIZE)
     CELLX = int(WIDTH/CELL_SIZE)
 
-    GROW_SIZE = 5
+    GROW_SIZE = 1
 
     def __init__(self, root: tk.Tk):
         self.quit = False
@@ -115,6 +115,20 @@ class Game:
 
             self.window.update()
             self.window.after(self.game_speed)
+        
+        with open("snake_highscore.txt") as f:
+            highscore = f.read()
+
+        if int(highscore) < len(self.snake):
+            with open("snake_highscore.txt", "w") as f:
+                highscore = f"{len(self.snake)}"
+                f.write(highscore)
+        
+
+
+        text = self.canvas.create_text(self.WIDTH/2, self.HEIGHT/2, text=f"Game Over\nScore: {len(self.snake)}\nHighscore: {highscore}", font=("Arial", 36), fill="Red")
+        
+        self.window.bind('<space>', lambda event: self.restart())
 
         self.window.wait_window()
         self.window.destroy()
