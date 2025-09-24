@@ -5,33 +5,45 @@ import math
 from . import tktimer
 
 class Game:
+    # Width and height of the window
     WIDTH = 600
     HEIGHT = 600
 
+    # ms / frame
     GAME_SPEED = 10
 
+    # Player Constants
     SPEED = 3
     FRICTION = 0.1
     ACCELERATION = 0.1
 
+    # Speed at which the bullet travels
     BULLET_SPEED = 10
-    SHOOT_COOLDOWN = 100
 
+    # Speed to enemy bullets
     ENEMY_BULLET_SPEED = 2
 
-    ENEMY_SPEED = 2
+    # Speed of enemies
+    ENEMY_SPEED = 1.5
 
-    BIG_HELI_SHOOT_RATE = 3
+    # seconds between each shot of the shooters
+    SHOOTER_RATE = 3
+
+    # Big Helicopter Constants
+    BIG_HELI_SHOOT_RATE = 5
     BIG_HELI_SPEED = 1
-    BIG_HELI_MAX_HEALTH = 5
+    BIG_HELI_MAX_HEALTH = 25
 
     def __init__(self, root: tk.Tk):
+        """Set up all the variables for the game."""
+
         self.quit = False
 
         self.root = root
 
         self.game_speed = self.GAME_SPEED
 
+        # Make new window
         self.window = tk.Toplevel(self.root)
         self.window.focus()
 
@@ -45,23 +57,33 @@ class Game:
 
         self.player = self.canvas.create_rectangle(self.WIDTH/2, self.HEIGHT/2, self.WIDTH/2+25, self.HEIGHT/2+25, fill="#00FF00", outline='#00FF00')
         
+        # List of enemies
         self.enemies = []
+
+        # If an enemy is behind the player it gets "lost" and continues in the direction it was
+        # travelling before till it exits the screen. 
         self.lost_enemy_directions = {}
 
-        self.enemies.append(self.canvas.create_rectangle(self.WIDTH/2, self.HEIGHT/4, self.WIDTH/2+25, self.HEIGHT/4+25, fill="#FF0000", outline="#FF0000"))
-
+        # Dictionary of all Big Helicopters contains their ID, timer and health
         self.big_helicopters = {}
 
-        big_helicopter = self.canvas.create_rectangle(self.WIDTH/2, self.HEIGHT/4, self.WIDTH/2+40, self.HEIGHT/4+65, fill="#0000FF", outline="#0000FF")
-        
-        self.big_helicopters[big_helicopter] = [tktimer.Timer(self.BIG_HELI_SHOOT_RATE), [self.WIDTH/2, self.HEIGHT/4], self.BIG_HELI_MAX_HEALTH]
-
+        # Dictionary of enemy bullets contains thier direction.
         self.enemy_bullets = {}
 
+        # List of player bullets
         self.bullets = []
 
+        # Players velocity [x, y]
         self.velocity = [0, 0]
 
+        # Dictionary of shooters, contains ID, Timer
+        self.shooters = {}
+
+        self.score_label = self.canvas.create_text(self.WIDTH/2, 50, text="Score: 0", font=("Arial", 24), fill="black")
+
+        # Since Tk is event based it doesn't support polling a key press (is_pressed("up"))
+        # This means if the player holds the key the character will only move once
+        # These functions will update each keys state on the self.keyboard dictionary
         self.window.bind("<KeyPress>", self.key_pressed)
         self.window.bind("<KeyRelease>", self.key_released)
 
@@ -70,18 +92,35 @@ class Game:
         self.keyboard = {}
 
     def game(self):
+        # Timers for enemy spawning
         self.enemy_spawn_timer = tktimer.Timer(1)
-        self.big_helicopter_spawn_timer = tktimer.Timer(10)
+        self.big_helicopter_spawn_timer = tktimer.Timer(60)
+        self.shooter_spawn_timer = tktimer.Timer(30)
+
+        # Score
+        self.score = 0
+
+        # The time it takes for each enemy to spawn
+        self.enemy_spawn = 1
+        self.big_helicopter_spawn = 25
+        self.shooter_spawn = 5
 
         while True:
+            # Score is tied to time survived in seconds
+            self.score += self.game_speed/1000
+
+            self.canvas.itemconfig(self.score_label, text=f"Score: {(self.score):.0f}")
+            self.canvas.tag_raise(self.score_label)
+
             if self.quit == True:
                 break
-
+            
+            # Whenever the timer finsihes, spawn the respective enemy and restart the timer
             if self.enemy_spawn_timer.finished() == True:
                 x = random.randint(0, self.WIDTH-50)
 
                 self.enemies.append(self.canvas.create_rectangle(x, -25, x+25, 0, fill="#FF0000", outline="#FF0000"))
-                self.enemy_spawn_timer = tktimer.Timer(1)
+                self.enemy_spawn_timer = tktimer.Timer(self.enemy_spawn)
 
             if self.big_helicopter_spawn_timer.finished() == True:
                 x = random.randint(0, self.WIDTH-50)
@@ -89,7 +128,19 @@ class Game:
                 big_helicopter = self.canvas.create_rectangle(x-20, -65, x+20, 0, fill="#0000FF", outline="#0000FF")
                 self.big_helicopters[big_helicopter] = [tktimer.Timer(self.BIG_HELI_SHOOT_RATE), [x, self.HEIGHT/4], self.BIG_HELI_MAX_HEALTH]
 
-                self.big_helicopter_spawn_timer = tktimer.Timer(10)
+                self.big_helicopter_spawn_timer = tktimer.Timer(self.big_helicopter_spawn)
+
+                # When the Big Helicopter spawns start making the enemies spawn faster to increase difficulty
+                self.enemy_spawn = 0.75
+                self.shooter_spawn -= 0.25
+
+            if self.shooter_spawn_timer.finished() == True:
+                x = random.randint(0, self.WIDTH-50)
+
+                shooter = self.canvas.create_rectangle(x, -25, x+25, 0, fill="#28912A", outline="#28912A")
+                self.shooters[shooter] = tktimer.Timer(self.SHOOTER_RATE)
+
+                self.shooter_spawn_timer = tktimer.Timer(self.shooter_spawn)
 
 
             self.player_physics()
@@ -102,7 +153,11 @@ class Game:
             for big_helicopter in self.big_helicopters.keys():
                 self.big_helicopter_ai(big_helicopter)
             
+            for shooter in self.shooters.keys():
+                self.shooter_ai(shooter)
+            
             for bullet in self.enemy_bullets.keys():
+                # Move the enemy bullets
                 direction = [self.enemy_bullets[bullet][0]*self.ENEMY_BULLET_SPEED, self.enemy_bullets[bullet][1]*self.ENEMY_BULLET_SPEED]
 
                 self.canvas.move(bullet, *direction)
@@ -110,13 +165,27 @@ class Game:
             self.window.update()
             self.window.after(self.game_speed)
         
+        self.score = round(self.score)
+
+        # Read Highscores and write new highscore if there is one
+        with open("shooter_highscore.txt") as f:
+            highscore = f.read()
+
+        if int(highscore) < self.score:
+            with open("shooter_highscore.txt", "w") as f:
+                highscore = f"{self.score}"
+                f.write(highscore)
+
+        self.canvas.create_text(self.WIDTH/2, self.HEIGHT/2, text=f"Game Over\nScore: {int(self.score)}\nHighscore: {highscore}", font=("Arial", 36), fill="Red")
         
+        # Space to Restart
         self.window.bind('<space>', lambda event: self.restart())
 
         self.window.wait_window()
         self.window.destroy()
 
     def move(self, x, y):
+        """Add velocity to player."""
         if x != 0:
             self.velocity[0] = x*self.SPEED
 
@@ -134,6 +203,7 @@ class Game:
         else: return False
 
     def bullet_physics(self):
+        """Handle Bullet Physics. For each bullet and each enemy, check if they collide if so delete them or reduce their health."""
         for bullet in self.bullets:
             self.canvas.move(bullet, 0, -self.BULLET_SPEED)
             
@@ -170,8 +240,22 @@ class Game:
                     self.canvas.delete(big_heli)
                     self.big_helicopters.pop(big_heli)
 
+        for bullet in self.bullets:    
+            for shooter in list(self.shooters.keys()):
+                enemy_box = self.canvas.coords(shooter)
+                bullet_box = self.canvas.coords(bullet)
+
+                if self.is_colliding(enemy_box, bullet_box) == True:
+                    self.canvas.delete(shooter)
+                    self.shooters.pop(shooter)
+
+                    self.canvas.delete(bullet)
+                    self.bullets.remove(bullet)
+
+                    break
 
     def is_colliding(self, a, b):
+        """Check if two boxes are colliding."""
         (ax1, ay1, ax2, ay2) = a
         (bx1, by1, bx2, by2) = b
 
@@ -184,6 +268,7 @@ class Game:
         return True
 
     def player_input(self):
+        """Handle player inpute."""
         velocity = [0, 0]
         if self.is_pressed('Up'):
             velocity[1] += -1
@@ -194,6 +279,10 @@ class Game:
         if self.is_pressed('Right'):
             velocity[0] += 1
 
+        # Normalise velocity. 
+        # If velocity = (0, 1) then speed is 1
+        # If velocity = (1, 1) then the player will be moving at a speed of sqrt(2)
+        # Normalising ensures that the player moves at the saem speed in all directions
         if velocity != [0, 0]:
             magnitude = math.sqrt(velocity[0]**2 + velocity[1]**2)
             velocity[0] /= magnitude
@@ -204,6 +293,7 @@ class Game:
         
 
     def player_physics(self):
+        """Handle player physics, collision with border, and death."""
         if self.player_input()[0] == 0:
             self.velocity[0] *= 1-self.FRICTION
         if self.player_input()[1] == 0:
@@ -213,11 +303,16 @@ class Game:
 
         player_box = self.canvas.coords(self.player)
 
-        if self.is_colliding(player_box, (25, 25, self.WIDTH-25, self.HEIGHT-25)) == False:
-            if player_box[0] < 25 or player_box[2] > self.WIDTH:
-                self.canvas.move(self.player, -self.velocity[0], 0)
-            if player_box[1] < 25 or player_box[3] > self.HEIGHT:
-                self.canvas.move(self.player, 0, -self.velocity[1])
+        (x1, y1, x2, y2) = self.canvas.coords(self.player)
+
+        if x1 < 0:
+            self.canvas.move(self.player, -x1, 0)
+        if x2 > self.WIDTH:
+            self.canvas.move(self.player, (self.WIDTH) - x2, 0)
+        if y1 < 0:
+            self.canvas.move(self.player, 0, -y1)
+        if y2 > self.HEIGHT:
+            self.canvas.move(self.player, 0, (self.HEIGHT) - y2)
 
         for enemy in self.enemies:
             enemy_box = self.canvas.coords(enemy)
@@ -241,6 +336,7 @@ class Game:
                 self.quit = True
         
     def shoot(self, event):
+        """Spawn a bullet."""
         (x1, y1, x2, y2) = self.canvas.coords(self.player)
 
         center = [(x1+x2)/2, (y1+y2)/2]
@@ -250,6 +346,8 @@ class Game:
         self.bullets.append(bullet)
 
     def enemy_ai(self, enemy):
+        """Enemy AI. Move toward the player.""" 
+        """If enemy falls behind player than it is lost and will continue moving in the same direction till it falls out of the screen"""
         if enemy in self.lost_enemy_directions:
             self.canvas.move(enemy, *self.lost_enemy_directions[enemy])
             return
@@ -278,6 +376,8 @@ class Game:
         self.canvas.move(enemy, *direction)
 
     def big_helicopter_ai(self, big_helicopter):
+        """Big Helicopter AI. Every interval shoot out three bullets towards the player.
+          1/3 chance of moving to a random position on the screen. Also slowly drifts down."""
         (x1, y1, x2, y2) = self.canvas.coords(big_helicopter)
         (x, y) = [(x1+x2)/2, (y1+y2)/2]
 
@@ -362,7 +462,31 @@ class Game:
 
             self.canvas.tag_raise(big_helicopter)
 
+    def shooter_ai(self, shooter):
+        """Shooter AI. Shoot bullets towards the player. Slowly drift down."""
+        self.canvas.move(shooter, 0, 0.25)
+
+        if self.shooters[shooter].finished() == True:
+            self.shooters[shooter] = tktimer.Timer(self.SHOOTER_RATE)
+
+            (x1, y1, x2, y2) = self.canvas.coords(shooter)
+            (x, y) = [(x1+x2)/2, (y1+y2)/2]
+
+            (x1, y1, x2, y2) = self.canvas.coords(self.player)
+            (px, py) = [(x1+x2)/2, (y1+y2)/2]
+
+            direction = [px - x, py - y]
+
+            if direction != [0, 0]:
+                magnitude = math.sqrt(direction[0]**2 + direction[1]**2)
+                direction[0] /= magnitude
+                direction[1] /= magnitude
+
+            enemy_bullet = self.canvas.create_rectangle(x-7.5, y-7.5, x+7.5, y+7.5, fill="#FF8000", outline="#FF0000")
+            self.enemy_bullets[enemy_bullet] = direction   
+
     def restart(self):
+        """Restart Game"""
         old_window = self.window
         self.__init__(self.root)
         old_window.destroy()
