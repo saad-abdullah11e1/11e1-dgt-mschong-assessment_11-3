@@ -14,7 +14,7 @@ class Game:
     CELLY = int(HEIGHT/CELL_SIZE)
     CELLX = int(WIDTH/CELL_SIZE)
 
-    GROW_SIZE = 1
+    GROW_SIZE = 5
 
     def __init__(self, root: tk.Tk):
         self.quit = False
