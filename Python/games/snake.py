@@ -66,56 +66,9 @@ class Game:
     def game(self):
         self.game_tick_timer = tktimer.Timer(self.game_speed/1000)
 
-        while True:
-            # print(self.new_directions)
-            if len(self.new_directions) != 0:
-                self.direction = self.new_directions[0]
-                self.new_directions.pop(0)
-
-            self.canvas.tag_raise(self.score_label)
-            self.canvas.itemconfig(self.score_label, text=f"Score: {(len(self.snake)):.0f}")
-
-            if self.quit == True:
-                break
-            self.game_tick_timer = tktimer.Timer(self.game_speed/1000)
-
-            staged_moves = []
-
-            for (i, box) in enumerate(self.snake[1:]):
-                (x1, y1, _, _) = self.canvas.coords(self.snake[i])
-                (x, y, _, _) = self.canvas.coords(box)
-
-                staged_moves.append((box, x1-x, y1-y))
-                
-            self.canvas.move(self.snake[0], self.direction[0]*self.CELL_SIZE, self.direction[1]*self.CELL_SIZE)
-            for move in staged_moves:
-                self.canvas.move(*move)
-                
-            if self.canvas.coords(self.snake[0]) == self.canvas.coords(self.apple):
-                self.canvas.delete(self.apple)
-
-                for i in range(self.GROW_SIZE):
-                    (x1, y1, x2, y2) = self.canvas.coords(self.snake[-1])
-                    self.snake.append(self.canvas.create_rectangle(x1, y1, x2, y2, fill="#00FF00", outline='#00FF00'))
-
-                (x1, y1, x2, y2) = self.get_cell_coord(random.randint(0, self.CELLX-1), random.randint(0, self.CELLY-1))
-                while [x1, y1, x2, y2] in [self.canvas.coords(part) for part in self.snake]:
-                    (x1, y1, x2, y2) = self.get_cell_coord(random.randint(0, self.CELLX-1), random.randint(0, self.CELLY-1))
-                
-                self.apple = self.canvas.create_rectangle(x1, y1, x2, y2, fill="#FF0000", outline="#FF0000")
-
-            for part in self.snake[1:]:
-                if self.canvas.coords(self.snake[0]) == self.canvas.coords(part):
-                    self.quit = True
-
-            (x1, y1, x2, y2) = self.canvas.coords(self.snake[0])
-
-            if x1 < 0 or x2 > self.WIDTH or y1 < 0 or y2 > self.HEIGHT:
-                self.quit = True
-
-            self.window.update()
-            self.window.after(self.game_speed)
-        
+        self.game_loop()
+    
+    def quit_game(self):
         with open("snake_highscore.txt") as f:
             highscore = f.read()
 
@@ -124,14 +77,9 @@ class Game:
                 highscore = f"{len(self.snake)}"
                 f.write(highscore)
         
-
-
         text = self.canvas.create_text(self.WIDTH/2, self.HEIGHT/2, text=f"Game Over\nScore: {len(self.snake)}\nHighscore: {highscore}", font=("Arial", 36), fill="Red")
         
         self.window.bind('<space>', lambda event: self.restart())
-
-        self.window.wait_window()
-        self.window.destroy()
 
     def get_cell_coord(self, x, y):
         return (x*self.CELL_SIZE, y*self.CELL_SIZE, (x+1)*self.CELL_SIZE, (y+1)*self.CELL_SIZE,)
@@ -149,6 +97,55 @@ class Game:
         old_window.destroy()
         self.game()
         
+    def game_loop(self):
+        # print(self.new_directions)
+        if len(self.new_directions) != 0:
+            self.direction = self.new_directions[0]
+            self.new_directions.pop(0)
+
+        self.canvas.tag_raise(self.score_label)
+        self.canvas.itemconfig(self.score_label, text=f"Score: {(len(self.snake)):.0f}")
+
+        if self.quit == True:
+            self.quit_game()
+            return
+        self.game_tick_timer = tktimer.Timer(self.game_speed/1000)
+
+        staged_moves = []
+
+        for (i, box) in enumerate(self.snake[1:]):
+            (x1, y1, _, _) = self.canvas.coords(self.snake[i])
+            (x, y, _, _) = self.canvas.coords(box)
+
+            staged_moves.append((box, x1-x, y1-y))
+            
+        self.canvas.move(self.snake[0], self.direction[0]*self.CELL_SIZE, self.direction[1]*self.CELL_SIZE)
+        for move in staged_moves:
+            self.canvas.move(*move)
+            
+        if self.canvas.coords(self.snake[0]) == self.canvas.coords(self.apple):
+            self.canvas.delete(self.apple)
+
+            for i in range(self.GROW_SIZE):
+                (x1, y1, x2, y2) = self.canvas.coords(self.snake[-1])
+                self.snake.append(self.canvas.create_rectangle(x1, y1, x2, y2, fill="#00FF00", outline='#00FF00'))
+
+            (x1, y1, x2, y2) = self.get_cell_coord(random.randint(0, self.CELLX-1), random.randint(0, self.CELLY-1))
+            while [x1, y1, x2, y2] in [self.canvas.coords(part) for part in self.snake]:
+                (x1, y1, x2, y2) = self.get_cell_coord(random.randint(0, self.CELLX-1), random.randint(0, self.CELLY-1))
+            
+            self.apple = self.canvas.create_rectangle(x1, y1, x2, y2, fill="#FF0000", outline="#FF0000")
+
+        for part in self.snake[1:]:
+            if self.canvas.coords(self.snake[0]) == self.canvas.coords(part):
+                self.quit = True
+
+        (x1, y1, x2, y2) = self.canvas.coords(self.snake[0])
+
+        if x1 < 0 or x2 > self.WIDTH or y1 < 0 or y2 > self.HEIGHT:
+            self.quit = True
+
+        self.window.after(self.game_speed, self.game_loop)
 
 if __name__ == "__main__":
     Game().game()

@@ -105,66 +105,70 @@ class Game:
         self.big_helicopter_spawn = 25
         self.shooter_spawn = 5
 
-        while True:
-            # Score is tied to time survived in seconds
-            self.score += self.game_speed/1000
+        self.game_loop()
 
-            self.canvas.itemconfig(self.score_label, text=f"Score: {(self.score):.0f}")
-            self.canvas.tag_raise(self.score_label)
+    def game_loop(self):
+        # Score is tied to time survived in seconds
+        self.score += self.game_speed/1000
 
-            if self.quit == True:
-                break
-            
-            # Whenever the timer finsihes, spawn the respective enemy and restart the timer
-            if self.enemy_spawn_timer.finished() == True:
-                x = random.randint(0, self.WIDTH-50)
+        self.canvas.itemconfig(self.score_label, text=f"Score: {(self.score):.0f}")
+        self.canvas.tag_raise(self.score_label)
 
-                self.enemies.append(self.canvas.create_rectangle(x, -25, x+25, 0, fill="#FF0000", outline="#FF0000"))
-                self.enemy_spawn_timer = tktimer.Timer(self.enemy_spawn)
-
-            if self.big_helicopter_spawn_timer.finished() == True:
-                x = random.randint(0, self.WIDTH-50)
-
-                big_helicopter = self.canvas.create_rectangle(x-20, -65, x+20, 0, fill="#0000FF", outline="#0000FF")
-                self.big_helicopters[big_helicopter] = [tktimer.Timer(self.BIG_HELI_SHOOT_RATE), [x, self.HEIGHT/4], self.BIG_HELI_MAX_HEALTH]
-
-                self.big_helicopter_spawn_timer = tktimer.Timer(self.big_helicopter_spawn)
-
-                # When the Big Helicopter spawns start making the enemies spawn faster to increase difficulty
-                self.enemy_spawn = 0.75
-                self.shooter_spawn -= 0.25
-
-            if self.shooter_spawn_timer.finished() == True:
-                x = random.randint(0, self.WIDTH-50)
-
-                shooter = self.canvas.create_rectangle(x, -25, x+25, 0, fill="#28912A", outline="#28912A")
-                self.shooters[shooter] = tktimer.Timer(self.SHOOTER_RATE)
-
-                self.shooter_spawn_timer = tktimer.Timer(self.shooter_spawn)
-
-
-            self.player_physics()
-
-            self.bullet_physics()
-
-            for enemy in self.enemies:
-                self.enemy_ai(enemy)
-            
-            for big_helicopter in self.big_helicopters.keys():
-                self.big_helicopter_ai(big_helicopter)
-            
-            for shooter in self.shooters.keys():
-                self.shooter_ai(shooter)
-            
-            for bullet in self.enemy_bullets.keys():
-                # Move the enemy bullets
-                direction = [self.enemy_bullets[bullet][0]*self.ENEMY_BULLET_SPEED, self.enemy_bullets[bullet][1]*self.ENEMY_BULLET_SPEED]
-
-                self.canvas.move(bullet, *direction)
-
-            self.window.update()
-            self.window.after(self.game_speed)
+        if self.quit == True:
+            self.quit_game()
+            return
         
+        # Whenever the timer finsihes, spawn the respective enemy and restart the timer
+        if self.enemy_spawn_timer.finished() == True:
+            x = random.randint(0, self.WIDTH-50)
+
+            self.enemies.append(self.canvas.create_rectangle(x, -25, x+25, 0, fill="#FF0000", outline="#FF0000"))
+            self.enemy_spawn_timer = tktimer.Timer(self.enemy_spawn)
+
+        if self.big_helicopter_spawn_timer.finished() == True:
+            x = random.randint(0, self.WIDTH-50)
+
+            big_helicopter = self.canvas.create_rectangle(x-20, -65, x+20, 0, fill="#0000FF", outline="#0000FF")
+            self.big_helicopters[big_helicopter] = [tktimer.Timer(self.BIG_HELI_SHOOT_RATE), [x, self.HEIGHT/4], self.BIG_HELI_MAX_HEALTH]
+
+            self.big_helicopter_spawn_timer = tktimer.Timer(self.big_helicopter_spawn)
+
+            # When the Big Helicopter spawns start making the enemies spawn faster to increase difficulty
+            self.enemy_spawn = 0.75
+            self.shooter_spawn -= 0.25
+
+        if self.shooter_spawn_timer.finished() == True:
+            x = random.randint(0, self.WIDTH-50)
+
+            shooter = self.canvas.create_rectangle(x, -25, x+25, 0, fill="#28912A", outline="#28912A")
+            self.shooters[shooter] = tktimer.Timer(self.SHOOTER_RATE)
+
+            self.shooter_spawn_timer = tktimer.Timer(self.shooter_spawn)
+
+
+        self.player_physics()
+
+        self.bullet_physics()
+
+        for enemy in self.enemies:
+            self.enemy_ai(enemy)
+        
+        for big_helicopter in list(self.big_helicopters.keys()):
+            self.big_helicopter_ai(big_helicopter)
+        
+        for shooter in list(self.shooters.keys()):
+            self.shooter_ai(shooter)
+        
+        for bullet in self.enemy_bullets.keys():
+            # Move the enemy bullets
+            direction = [self.enemy_bullets[bullet][0]*self.ENEMY_BULLET_SPEED, self.enemy_bullets[bullet][1]*self.ENEMY_BULLET_SPEED]
+
+            self.canvas.move(bullet, *direction)
+
+        # self.window.update()
+        self.window.after(self.game_speed, self.game_loop)
+
+    def quit_game(self):
         self.score = round(self.score)
 
         # Read Highscores and write new highscore if there is one
@@ -180,9 +184,6 @@ class Game:
         
         # Space to Restart
         self.window.bind('<space>', lambda event: self.restart())
-
-        self.window.wait_window()
-        self.window.destroy()
 
     def move(self, x, y):
         """Add velocity to player."""
@@ -375,6 +376,14 @@ class Game:
             self.lost_enemy_directions[enemy] = direction
         self.canvas.move(enemy, *direction)
 
+        enemy_box = self.canvas.coords(enemy)
+
+        (x1, y1, x2, y2) = self.canvas.coords(enemy)
+
+        if x1 < 0 or x2 > self.WIDTH  or y2 > self.HEIGHT:
+            self.canvas.delete(enemy)
+            self.enemies.remove(enemy)
+
     def big_helicopter_ai(self, big_helicopter):
         """Big Helicopter AI. Every interval shoot out three bullets towards the player.
           1/3 chance of moving to a random position on the screen. Also slowly drifts down."""
@@ -462,6 +471,12 @@ class Game:
 
             self.canvas.tag_raise(big_helicopter)
 
+            (x1, y1, x2, y2) = self.canvas.coords(big_helicopter)
+
+            if x1 < 0 or x2 > self.WIDTH or y2 > self.HEIGHT:
+                    self.canvas.delete(big_helicopter)
+                    self.big_helicopters.pop(big_helicopter)
+
     def shooter_ai(self, shooter):
         """Shooter AI. Shoot bullets towards the player. Slowly drift down."""
         self.canvas.move(shooter, 0, 0.25)
@@ -484,6 +499,12 @@ class Game:
 
             enemy_bullet = self.canvas.create_rectangle(x-7.5, y-7.5, x+7.5, y+7.5, fill="#FF8000", outline="#FF0000")
             self.enemy_bullets[enemy_bullet] = direction   
+
+            (x1, y1, x2, y2) = self.canvas.coords(shooter)
+
+            if x1 < 0 or x2 > self.WIDTH or y2 > self.HEIGHT:
+                self.canvas.delete(shooter)
+                self.shooters.pop(shooter)
 
     def restart(self):
         """Restart Game"""
