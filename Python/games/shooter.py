@@ -34,7 +34,7 @@ class Game:
     BIG_HELI_SPEED = 1
     BIG_HELI_MAX_HEALTH = 25
 
-    def __init__(self, root: tk.Tk):
+    def __init__(self, root: tk.Tk, name):
         """Set up all the variables for the game."""
 
         self.quit = False

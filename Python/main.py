@@ -55,7 +55,7 @@ def close_name():
     global name
 
     if name_entry.get() == "" or any(i.isdigit() for i in name_entry.get()):
-        messagebox.showwarning("Input Required", "Please enter a valid username.")
+        messagebox.showwarning("Input Required", "Please enter a valid name.\n(No numbers)")
 
         input.focus()
         name_entry.focus()
@@ -89,10 +89,10 @@ input.wait_window()
 
 
 def run_game(game):
-    game.Game(window).game()
+    game.Game(window, name).game()
 
 
-name_label = tk.Label(window, text="Hello " + name, font=("", 20))
+name_label = tk.Label(window, text="Hello, " + name, font=("", 20))
 name_label.grid(row=1, column=2, pady=20)
 
 dino = ImageTk.PhotoImage(Image.open("snake.jpeg"))

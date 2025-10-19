@@ -16,7 +16,7 @@ class Game:
 
     GROW_SIZE = 5
 
-    def __init__(self, root: tk.Tk):
+    def __init__(self, root: tk.Tk, name):
         self.quit = False
 
         self.root = root
