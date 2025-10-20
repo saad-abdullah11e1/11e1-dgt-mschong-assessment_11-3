@@ -21,6 +21,8 @@ class Game:
 
         self.root = root
 
+        self.name = name
+
         self.game_speed = self.GAME_SPEED
 
         self.window = tk.Toplevel(self.root)
@@ -93,7 +95,7 @@ class Game:
 
     def restart(self):
         old_window = self.window
-        self.__init__(self.root)
+        self.__init__(self.root, self.name)
         old_window.destroy()
         self.game()
         

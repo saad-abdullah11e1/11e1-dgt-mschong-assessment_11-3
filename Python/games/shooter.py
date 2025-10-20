@@ -3,6 +3,7 @@ import random
 import time
 import math
 from . import tktimer
+import PIL
 
 class Game:
     # Width and height of the window
@@ -41,6 +42,8 @@ class Game:
 
         self.root = root
 
+        self.name = name
+
         self.game_speed = self.GAME_SPEED
 
         # Make new window
@@ -55,7 +58,12 @@ class Game:
 
         self.canvas.pack()
 
-        self.player = self.canvas.create_rectangle(self.WIDTH/2, self.HEIGHT/2, self.WIDTH/2+25, self.HEIGHT/2+25, fill="#00FF00", outline='#00FF00')
+        self.player_image = PIL.Image.open("snake.jpeg")
+        self.player_image = self.player_image.resize((30, 30))
+        self.player_image = PIL.ImageTk.PhotoImage(self.player_image)
+        self.player = self.canvas.create_image(self.WIDTH/2, self.HEIGHT/2, image=self.player_image, anchor="nw")
+
+        # self.player = self.canvas.create_rectangle(self.WIDTH/2, self.HEIGHT/2, self.WIDTH/2+25, self.HEIGHT/2+25, fill="#00FF00", outline='#00FF00')
         
         # List of enemies
         self.enemies = []
@@ -302,9 +310,9 @@ class Game:
 
         self.canvas.move(self.player, self.velocity[0], self.velocity[1])
 
-        player_box = self.canvas.coords(self.player)
+        player_box = self.canvas.bbox(self.player)
 
-        (x1, y1, x2, y2) = self.canvas.coords(self.player)
+        (x1, y1, x2, y2) = self.canvas.bbox(self.player)
 
         if x1 < 0:
             self.canvas.move(self.player, -x1, 0)
@@ -317,14 +325,14 @@ class Game:
 
         for enemy in self.enemies:
             enemy_box = self.canvas.coords(enemy)
-            player_box = self.canvas.coords(self.player)
+            player_box = self.canvas.bbox(self.player)
 
             if self.is_colliding(player_box, enemy_box) == True:
                 self.quit = True
 
         for bullet in self.enemy_bullets.keys():
             bullet_box = self.canvas.coords(bullet)
-            player_box = self.canvas.coords(self.player)
+            player_box = self.canvas.bbox(self.player)
 
             if self.is_colliding(player_box, bullet_box) == True:
                 self.quit = True
@@ -338,7 +346,7 @@ class Game:
         
     def shoot(self, event):
         """Spawn a bullet."""
-        (x1, y1, x2, y2) = self.canvas.coords(self.player)
+        (x1, y1, x2, y2) = self.canvas.bbox(self.player)
 
         center = [(x1+x2)/2, (y1+y2)/2]
 
@@ -353,7 +361,7 @@ class Game:
             self.canvas.move(enemy, *self.lost_enemy_directions[enemy])
             return
 
-        (x1, y1, x2, y2) = self.canvas.coords(self.player)
+        (x1, y1, x2, y2) = self.canvas.bbox(self.player)
         player_coords = [(x1+x2)/2, (y1+y2)/2]
 
         (x1, y1, x2, y2) = self.canvas.coords(enemy)
@@ -413,7 +421,7 @@ class Game:
             (x1, y1, x2, y2) = self.canvas.coords(big_helicopter)
             (x, y) = [(x1+x2)/2, (y1+y2)/2]
 
-            (x1, y1, x2, y2) = self.canvas.coords(self.player)
+            (x1, y1, x2, y2) = self.canvas.bbox(self.player)
             (px, py) = [(x1+x2)/2, (y1+y2)/2]
 
             if random.randint(1, 3) == 1:
@@ -487,7 +495,7 @@ class Game:
             (x1, y1, x2, y2) = self.canvas.coords(shooter)
             (x, y) = [(x1+x2)/2, (y1+y2)/2]
 
-            (x1, y1, x2, y2) = self.canvas.coords(self.player)
+            (x1, y1, x2, y2) = self.canvas.bbox(self.player)
             (px, py) = [(x1+x2)/2, (y1+y2)/2]
 
             direction = [px - x, py - y]
@@ -509,7 +517,7 @@ class Game:
     def restart(self):
         """Restart Game"""
         old_window = self.window
-        self.__init__(self.root)
+        self.__init__(self.root, self.name)
         old_window.destroy()
         self.game()
         

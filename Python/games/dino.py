@@ -12,6 +12,8 @@ class Game:
     JUMP_VELOCITY = -12.5
     GAME_PACE = 0.00025
     GAME_SPEED = 5
+
+    PLAYER_ANIM_SPEED = 0.075
     
     def __init__(self, root: tk.Tk, name):
         self.quit = False
@@ -23,7 +25,9 @@ class Game:
         self.game_speed = self.GAME_SPEED
 
         self.obstacles = []
-        self.obstacle_images = []
+        self.obstacle_image = PIL.Image.open("sprites/obstacle.png")
+        self.obstacle_image = self.obstacle_image.resize((50, 50), PIL.Image.NEAREST)
+        self.obstacle_image = PIL.ImageTk.PhotoImage(self.obstacle_image)
 
         self.root = root
 
@@ -34,20 +38,40 @@ class Game:
 
         self.window.resizable(False, False)
 
-        self.canvas = tk.Canvas(self.window, width=self.WIDTH, height=self.HEIGHT, background='white')
+        self.canvas = tk.Canvas(self.window, width=self.WIDTH, height=self.HEIGHT, background='#AFCFC2')
 
         self.canvas.pack()
 
-        self.floor = self.canvas.create_rectangle(0, self.HEIGHT-200, self.WIDTH, self.HEIGHT, fill='black')
+        self.floor_image = PIL.Image.open("sprites/floor.png")
+        self.floor_image = self.floor_image.resize((50, 50), PIL.Image.NEAREST)
+        self.floor_image = PIL.ImageTk.PhotoImage(self.floor_image)
+
+        for y in range(self.HEIGHT-200, self.HEIGHT+50, 50):
+            for x in range(0, self.WIDTH+50, 50):
+                tile = self.canvas.create_image(x, y, image=self.floor_image, anchor="nw")
 
         self.score_label = self.canvas.create_text(self.WIDTH/2, 50, text="Score: 0", font=("Arial", 24), fill="black")
 
         #self.player = self.canvas.create_rectangle(100, 550, 150, 600, fill='blue', outline='blue')
 
-        self.player_image = PIL.Image.open("snake.jpeg")
-        self.player_image = self.player_image.resize((51, 51))
-        self.player_image = PIL.ImageTk.PhotoImage(self.player_image)
-        self.player = self.canvas.create_image(100, 550, image=self.player_image, anchor="nw")
+        self.player_anim_state = 0
+
+        self.player_animations = [1, 2, 3]
+
+        player_image = PIL.Image.open("sprites/dino_stand.png")
+        player_image = player_image.resize((51, 51), PIL.Image.NEAREST)
+        self.player_animations[0] = PIL.ImageTk.PhotoImage(player_image)
+
+        player_image = PIL.Image.open("sprites/dino_0.png")
+        player_image = player_image.resize((51, 51), PIL.Image.NEAREST)
+        self.player_animations[1] = PIL.ImageTk.PhotoImage(player_image)
+        
+        player_image = PIL.Image.open("sprites/dino_1.png")
+        player_image = player_image.resize((51, 51), PIL.Image.NEAREST)
+        self.player_animations[2] = PIL.ImageTk.PhotoImage(player_image)
+
+
+        self.player = self.canvas.create_image(100, 550, image=self.player_animations[0], anchor="nw")
 
         self.window.bind('<space>', lambda event: self.player_jump())
         # self.window.bind('<KeyRelease-space>', lambda event: self.player_stop_jump())
@@ -55,7 +79,8 @@ class Game:
         self.window.bind('<Down>', lambda event: self.player_duck())
 
     def game(self):
-        self.obstacle_spawn_timer = tktimer.Timer(random.randint(int(10-self.game_speed/10), 20)/10)
+        self.obstacle_spawn_timer = tktimer.Timer(random.randint(int(10-self.game_speed/10), 20)/5)
+        self.player_anim_timer = tktimer.Timer(self.PLAYER_ANIM_SPEED)
 
         self.game_loop()
 
@@ -88,15 +113,29 @@ class Game:
         if self.canvas.coords(obstacle)[0] < -150:
             self.canvas.delete(obstacle)
             self.obstacles.remove(obstacle)
-            self.obstacle_images.pop(0)
             # self.canvas.move(obstacle, 1000, 0)
 
 
     def player_physics(self):
+        if self.player_anim_timer.finished() == True:
+            self.player_anim_timer = tktimer.Timer(self.PLAYER_ANIM_SPEED)
+
+            if self.player_anim_state == 0:
+                self.canvas.itemconfig(self.player, image=self.player_animations[2])
+
+                self.player_anim_state = 1
+            elif self.player_anim_state == 1:
+                self.canvas.itemconfig(self.player, image=self.player_animations[1])
+
+                self.player_anim_state = 0
+
+
         self.canvas.move(self.player, 0, self.velocity)
 
         if self.canvas.coords(self.player)[1] < 550:
             self.velocity += self.GRAVITY
+
+            self.canvas.itemconfig(self.player, image=self.player_animations[0])
         else:
             self.velocity = 0
             self.canvas.move(self.player, 0, 550 - self.canvas.coords(self.player)[1])
@@ -120,23 +159,19 @@ class Game:
     
     def game_loop(self):
         if self.obstacle_spawn_timer.finished():
-            self.obstacle_spawn_timer = tktimer.Timer(random.randint(int(10-self.game_speed/10), 20)/10)
+            self.obstacle_spawn_timer = tktimer.Timer(random.randint(int(10-self.game_speed/10), 20)/5)
 
-            obstacle_width = random.randint(50, 150)
-            obstacle_height = random.randint(50, 200-obstacle_width)
+            obstacle_width = random.randint(1, 3)
+            obstacle_height = random.randint(1, 4-obstacle_width)
 
-            obstacle_image = PIL.Image.open("snake.jpeg")
-            obstacle_image = obstacle_image.resize((obstacle_width, obstacle_height+1))
-            self.obstacle_images.append(PIL.ImageTk.PhotoImage(obstacle_image))
-            obstacle = self.canvas.create_image(1500, 600-obstacle_height, image=self.obstacle_images[-1], anchor="nw")
-
-            #obstacle = self.canvas.create_rectangle(1500, 600, 1500+obstacle_width, 600-obstacle_height, fill='red', outline='red')
-
-            self.obstacles.append(obstacle)
+            for w in range(1, obstacle_width+1):
+                for h in range(1, obstacle_height+1):
+                    obstacle = self.canvas.create_image(1500-w*50, 601-h*50, image=self.obstacle_image, anchor="nw")
+                    self.obstacles.append(obstacle)
 
         self.canvas.itemconfig(self.score_label, text=f"Score: {(10*(self.game_speed-self.GAME_SPEED)):.0f}")
 
-        for obstacle in self.obstacles:
+        for obstacle in self.obstacles[:]:
             self.move_obstacle(obstacle)
 
         self.player_physics()  
