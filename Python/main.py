@@ -55,7 +55,11 @@ def close_name():
     global name
 
     if name_entry.get() == "" or any(i.isdigit() for i in name_entry.get()):
-        messagebox.showwarning("Input Required", "Please enter a valid name.\n(No numbers)")
+        if messagebox.askyesno("Input Required", "You have entered a blank or invalid name (numbers)\n Are you sure you want to continue") == True:
+            name = name_entry.get()
+            input.destroy()
+
+            return
 
         input.focus()
         name_entry.focus()

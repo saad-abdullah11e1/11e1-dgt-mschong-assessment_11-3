@@ -72,14 +72,15 @@ class Game:
     
     def quit_game(self):
         with open("snake_highscore.txt") as f:
-            highscore = f.read()
+            name, highscore = f.read().split(':')
 
         if int(highscore) < len(self.snake):
             with open("snake_highscore.txt", "w") as f:
                 highscore = f"{len(self.snake)}"
-                f.write(highscore)
+                name = self.name
+                f.write(self.name+":"+highscore)
         
-        text = self.canvas.create_text(self.WIDTH/2, self.HEIGHT/2, text=f"Game Over\nScore: {len(self.snake)}\nHighscore: {highscore}", font=("Arial", 36), fill="Red")
+        text = self.canvas.create_text(self.WIDTH/2, self.HEIGHT/2, text=f"Game Over\nScore: {len(self.snake)}\nHighscore: {highscore} by {name}", font=("Arial", 36), fill="Red")
         
         self.window.bind('<space>', lambda event: self.restart())
 

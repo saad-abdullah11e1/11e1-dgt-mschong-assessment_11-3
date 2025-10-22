@@ -68,12 +68,20 @@ class Game:
         # List of enemies
         self.enemies = []
 
+        self.enemy_image = PIL.Image.open("snake.jpeg")
+        self.enemy_image = self.enemy_image.resize((30, 30))
+        self.enemy_image = PIL.ImageTk.PhotoImage(self.enemy_image)
+
         # If an enemy is behind the player it gets "lost" and continues in the direction it was
         # travelling before till it exits the screen. 
         self.lost_enemy_directions = {}
 
         # Dictionary of all Big Helicopters contains their ID, timer and health
         self.big_helicopters = {}
+
+        self.big_heli_image = PIL.Image.open("snake.jpeg")
+        self.big_heli_image = self.big_heli_image.resize((50, 75))
+        self.big_heli_image = PIL.ImageTk.PhotoImage(self.big_heli_image)
 
         # Dictionary of enemy bullets contains thier direction.
         self.enemy_bullets = {}
@@ -86,6 +94,10 @@ class Game:
 
         # Dictionary of shooters, contains ID, Timer
         self.shooters = {}
+
+        self.shooter_image = PIL.Image.open("snake.jpeg")
+        self.shooter_image = self.shooter_image.resize((30, 30))
+        self.shooter_image = PIL.ImageTk.PhotoImage(self.shooter_image)
 
         self.score_label = self.canvas.create_text(self.WIDTH/2, 50, text="Score: 0", font=("Arial", 24), fill="black")
 
@@ -101,7 +113,7 @@ class Game:
 
     def game(self):
         # Timers for enemy spawning
-        self.enemy_spawn_timer = tktimer.Timer(1)
+        self.enemy_spawn_timer = tktimer.Timer(10)
         self.big_helicopter_spawn_timer = tktimer.Timer(60)
         self.shooter_spawn_timer = tktimer.Timer(30)
 
@@ -130,13 +142,13 @@ class Game:
         if self.enemy_spawn_timer.finished() == True:
             x = random.randint(0, self.WIDTH-50)
 
-            self.enemies.append(self.canvas.create_rectangle(x, -25, x+25, 0, fill="#FF0000", outline="#FF0000"))
+            self.enemies.append(self.canvas.create_image(x, -25, image=self.enemy_image, anchor="nw"))
             self.enemy_spawn_timer = tktimer.Timer(self.enemy_spawn)
 
         if self.big_helicopter_spawn_timer.finished() == True:
             x = random.randint(0, self.WIDTH-50)
 
-            big_helicopter = self.canvas.create_rectangle(x-20, -65, x+20, 0, fill="#0000FF", outline="#0000FF")
+            big_helicopter = self.canvas.create_image(x, -25, image=self.big_heli_image, anchor="nw")
             self.big_helicopters[big_helicopter] = [tktimer.Timer(self.BIG_HELI_SHOOT_RATE), [x, self.HEIGHT/4], self.BIG_HELI_MAX_HEALTH]
 
             self.big_helicopter_spawn_timer = tktimer.Timer(self.big_helicopter_spawn)
@@ -148,7 +160,7 @@ class Game:
         if self.shooter_spawn_timer.finished() == True:
             x = random.randint(0, self.WIDTH-50)
 
-            shooter = self.canvas.create_rectangle(x, -25, x+25, 0, fill="#28912A", outline="#28912A")
+            shooter = self.canvas.create_image(x, -25, image=self.shooter_image, anchor="nw")
             self.shooters[shooter] = tktimer.Timer(self.SHOOTER_RATE)
 
             self.shooter_spawn_timer = tktimer.Timer(self.shooter_spawn)
@@ -181,14 +193,15 @@ class Game:
 
         # Read Highscores and write new highscore if there is one
         with open("shooter_highscore.txt") as f:
-            highscore = f.read()
+            name, highscore = f.read().split(':')
 
-        if int(highscore) < self.score:
+        if int(highscore) < len(self.score):
             with open("shooter_highscore.txt", "w") as f:
-                highscore = f"{self.score}"
-                f.write(highscore)
+                highscore = f"{len(self.score)}"
+                name = self.name
+                f.write(self.name+":"+highscore)
 
-        self.canvas.create_text(self.WIDTH/2, self.HEIGHT/2, text=f"Game Over\nScore: {int(self.score)}\nHighscore: {highscore}", font=("Arial", 36), fill="Red")
+        self.canvas.create_text(self.WIDTH/2, self.HEIGHT/2, text=f"Game Over\nScore: {int(self.score)}\nHighscore: {highscore} by {name}", font=("Arial", 36), fill="Red")
         
         # Space to Restart
         self.window.bind('<space>', lambda event: self.restart())
@@ -217,8 +230,8 @@ class Game:
             self.canvas.move(bullet, 0, -self.BULLET_SPEED)
             
             for enemy in self.enemies:
-                enemy_box = self.canvas.coords(enemy)
-                bullet_box = self.canvas.coords(bullet)
+                enemy_box = self.canvas.bbox(enemy)
+                bullet_box = self.canvas.bbox(bullet)
 
                 if self.is_colliding(enemy_box, bullet_box) == True:
                     self.canvas.delete(enemy)
@@ -231,8 +244,8 @@ class Game:
 
         for bullet in self.bullets:    
             for big_heli in list(self.big_helicopters.keys()):
-                enemy_box = self.canvas.coords(big_heli)
-                bullet_box = self.canvas.coords(bullet)
+                enemy_box = self.canvas.bbox(big_heli)
+                bullet_box = self.canvas.bbox(bullet)
 
                 if self.is_colliding(enemy_box, bullet_box) == True:
                     self.big_helicopters[big_heli][2] -= 1
@@ -245,14 +258,14 @@ class Game:
                     self.bullets.remove(bullet)
                     
                     break
-                if self.is_colliding(self.canvas.coords(big_heli), (0, 0, self.WIDTH, self.HEIGHT)) == False:
+                if self.is_colliding(self.canvas.bbox(big_heli), (0, 0, self.WIDTH, self.HEIGHT)) == False:
                     self.canvas.delete(big_heli)
                     self.big_helicopters.pop(big_heli)
 
         for bullet in self.bullets:    
             for shooter in list(self.shooters.keys()):
-                enemy_box = self.canvas.coords(shooter)
-                bullet_box = self.canvas.coords(bullet)
+                enemy_box = self.canvas.bbox(shooter)
+                bullet_box = self.canvas.bbox(bullet)
 
                 if self.is_colliding(enemy_box, bullet_box) == True:
                     self.canvas.delete(shooter)
@@ -324,22 +337,22 @@ class Game:
             self.canvas.move(self.player, 0, (self.HEIGHT) - y2)
 
         for enemy in self.enemies:
-            enemy_box = self.canvas.coords(enemy)
+            enemy_box = self.canvas.bbox(enemy)
             player_box = self.canvas.bbox(self.player)
 
             if self.is_colliding(player_box, enemy_box) == True:
                 self.quit = True
 
         for bullet in self.enemy_bullets.keys():
-            bullet_box = self.canvas.coords(bullet)
+            bullet_box = self.canvas.bbox(bullet)
             player_box = self.canvas.bbox(self.player)
 
             if self.is_colliding(player_box, bullet_box) == True:
                 self.quit = True
 
         for big_helicopter in self.big_helicopters.keys():
-            heli_box = self.canvas.coords(big_helicopter)
-            player_box = self.canvas.coords(self.player)
+            heli_box = self.canvas.bbox(big_helicopter)
+            player_box = self.canvas.bbox(self.player)
 
             if self.is_colliding(player_box, heli_box) == True:
                 self.quit = True
@@ -364,7 +377,7 @@ class Game:
         (x1, y1, x2, y2) = self.canvas.bbox(self.player)
         player_coords = [(x1+x2)/2, (y1+y2)/2]
 
-        (x1, y1, x2, y2) = self.canvas.coords(enemy)
+        (x1, y1, x2, y2) = self.canvas.bbox(enemy)
         enemy_coords = [(x1+x2)/2, (y1+y2)/2]
 
         direction = [0, 0]
@@ -384,9 +397,9 @@ class Game:
             self.lost_enemy_directions[enemy] = direction
         self.canvas.move(enemy, *direction)
 
-        enemy_box = self.canvas.coords(enemy)
+        enemy_box = self.canvas.bbox(enemy)
 
-        (x1, y1, x2, y2) = self.canvas.coords(enemy)
+        (x1, y1, x2, y2) = self.canvas.bbox(enemy)
 
         if x1 < 0 or x2 > self.WIDTH  or y2 > self.HEIGHT:
             self.canvas.delete(enemy)
@@ -395,7 +408,7 @@ class Game:
     def big_helicopter_ai(self, big_helicopter):
         """Big Helicopter AI. Every interval shoot out three bullets towards the player.
           1/3 chance of moving to a random position on the screen. Also slowly drifts down."""
-        (x1, y1, x2, y2) = self.canvas.coords(big_helicopter)
+        (x1, y1, x2, y2) = self.canvas.bbox(big_helicopter)
         (x, y) = [(x1+x2)/2, (y1+y2)/2]
 
         goal = self.big_helicopters[big_helicopter][1]
@@ -418,7 +431,7 @@ class Game:
         if self.big_helicopters[big_helicopter][0].finished() == True:
             self.big_helicopters[big_helicopter][0] = tktimer.Timer(self.BIG_HELI_SHOOT_RATE)
                  
-            (x1, y1, x2, y2) = self.canvas.coords(big_helicopter)
+            (x1, y1, x2, y2) = self.canvas.bbox(big_helicopter)
             (x, y) = [(x1+x2)/2, (y1+y2)/2]
 
             (x1, y1, x2, y2) = self.canvas.bbox(self.player)
@@ -479,7 +492,7 @@ class Game:
 
             self.canvas.tag_raise(big_helicopter)
 
-            (x1, y1, x2, y2) = self.canvas.coords(big_helicopter)
+            (x1, y1, x2, y2) = self.canvas.bbox(big_helicopter)
 
             if x1 < 0 or x2 > self.WIDTH or y2 > self.HEIGHT:
                     self.canvas.delete(big_helicopter)
@@ -492,7 +505,7 @@ class Game:
         if self.shooters[shooter].finished() == True:
             self.shooters[shooter] = tktimer.Timer(self.SHOOTER_RATE)
 
-            (x1, y1, x2, y2) = self.canvas.coords(shooter)
+            (x1, y1, x2, y2) = self.canvas.bbox(shooter)
             (x, y) = [(x1+x2)/2, (y1+y2)/2]
 
             (x1, y1, x2, y2) = self.canvas.bbox(self.player)
@@ -508,7 +521,7 @@ class Game:
             enemy_bullet = self.canvas.create_rectangle(x-7.5, y-7.5, x+7.5, y+7.5, fill="#FF8000", outline="#FF0000")
             self.enemy_bullets[enemy_bullet] = direction   
 
-            (x1, y1, x2, y2) = self.canvas.coords(shooter)
+            (x1, y1, x2, y2) = self.canvas.bbox(shooter)
 
             if x1 < 0 or x2 > self.WIDTH or y2 > self.HEIGHT:
                 self.canvas.delete(shooter)
