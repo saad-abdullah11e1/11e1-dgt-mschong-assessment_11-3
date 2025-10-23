@@ -18,18 +18,18 @@ def game_frame(game, title, desc, photo):
     frame = tk.Frame(window, bg="#5A5A5A")
     # frame.pack(padx=20, pady=20)
 
-    label = tk.Label(frame, bg="#5A5A5A", text=title)
+    label = tk.Label(frame, bg="#5A5A5A", text=title, font=('', 18))
     label.pack(pady=20)
 
     photo_label = tk.Label(frame, image=photo)
 
     photo_label.pack()
 
-    button_frame = tk.Frame(frame, bg="#5A5A5A")
+    button_frame = tk.Frame(frame, bg="#66B185")
     button_frame.pack(fill="both", expand=True)
 
     button = tk.Label(
-        button_frame, text="Click to Play", bg="#5A5A5A"
+        button_frame, text="Click to Play", bg="#66B185"
     )
     button.pack(pady=10)
 
@@ -53,23 +53,23 @@ def game_frame(game, title, desc, photo):
     info_button_frame.bind("<Button-1>", lambda _: more_info())
     info_button.bind("<Button-1>", lambda _: more_info())
 
-    def on_enter(frame, button):
-        frame.config(bg=hover_colour)
-        button.config(bg=hover_colour)
+    def on_enter(frame, button, colour):
+        frame.config(bg=colour)
+        button.config(bg=colour)
 
-    def on_leave(frame, button):
-        frame.config(bg=base_colour)
-        button.config(bg=base_colour)
+    def on_leave(frame, button, colour):
+        frame.config(bg=colour)
+        button.config(bg=colour)
 
-    button_frame.bind("<Enter>", lambda _: on_enter(button_frame, button))
-    button_frame.bind("<Leave>", lambda _: on_leave(button_frame, button))
-    button.bind("<Enter>", lambda _: on_enter(button_frame, button))
-    button.bind("<Leave>", lambda _: on_leave(button_frame, button))
+    button_frame.bind("<Enter>", lambda _: on_enter(button_frame, button, "#518D6A"))
+    button_frame.bind("<Leave>", lambda _: on_leave(button_frame, button, "#66B185"))
+    button.bind("<Enter>", lambda _: on_enter(button_frame, button, "#518D6A"))
+    button.bind("<Leave>", lambda _: on_leave(button_frame, button, "#66B185"))
 
-    info_button_frame.bind("<Enter>", lambda _: on_enter(info_button_frame, info_button))
-    info_button_frame.bind("<Leave>", lambda _: on_leave(info_button_frame, info_button))
-    info_button.bind("<Enter>", lambda _: on_enter(info_button_frame, info_button))
-    info_button.bind("<Leave>", lambda _: on_leave(info_button_frame, info_button))
+    info_button_frame.bind("<Enter>", lambda _: on_enter(info_button_frame, info_button, hover_colour))
+    info_button_frame.bind("<Leave>", lambda _: on_leave(info_button_frame, info_button, base_colour))
+    info_button.bind("<Enter>", lambda _: on_enter(info_button_frame, info_button, hover_colour))
+    info_button.bind("<Leave>", lambda _: on_leave(info_button_frame, info_button, base_colour))
 
     return frame
 
@@ -121,13 +121,19 @@ def run_game(game):
 name_label = tk.Label(window, text="Hello, " + name, font=("", 20))
 name_label.grid(row=1, column=2, pady=20)
 
-dino = ImageTk.PhotoImage(Image.open("snake.jpeg"))
+dino = Image.open("dino.png")
+dino.thumbnail((350,350))
+dino = ImageTk.PhotoImage(dino)
 game_frame(games.dino, "Dino Game", "A fun game where you player as a dinosoar dodging boxes. Space to jump, down arrow to quickfall", dino).grid(row=2, column=1, padx=10, pady=10)
 
-snake = ImageTk.PhotoImage(Image.open("snake.jpeg"))
+snake = Image.open("snake.png")
+snake.thumbnail((350,350))
+snake = ImageTk.PhotoImage(snake)
 game_frame(games.snake, "Snake Game", "The basic snake game. Use the arrow keys to move, eat the apples, don't hit yourself or the walls", snake).grid(row=2, column=2, padx=10, pady=10)
 
-shooter = ImageTk.PhotoImage(Image.open("snake.jpeg"))
+shooter = Image.open("shooter.png")
+shooter.thumbnail((350,350))
+shooter = ImageTk.PhotoImage(shooter)
 game_frame(games.shooter, "Shooter Game", "A helicopter shooter game. Move around with the arrow keys and press space to shoot. You need to dodge the bullets and enemy aircraft.", shooter).grid(row=2, column=3, padx=10, pady=10)
 
 window.mainloop()

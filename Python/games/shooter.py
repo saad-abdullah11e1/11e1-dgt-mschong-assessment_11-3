@@ -237,8 +237,8 @@ class Game:
 
     def game(self):
         # Timers for enemy spawning
-        self.enemy_spawn_timer = tktimer.Timer(10)
-        self.big_helicopter_spawn_timer = tktimer.Timer(1.60)
+        self.enemy_spawn_timer = tktimer.Timer(1)
+        self.big_helicopter_spawn_timer = tktimer.Timer(60)
         self.shooter_spawn_timer = tktimer.Timer(30)
 
         self.anim_timer = tktimer.Timer(self.ANIM_SPEED)
