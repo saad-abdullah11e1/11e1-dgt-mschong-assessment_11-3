@@ -63,7 +63,7 @@ class Game:
         self.window.bind('<Left>', lambda event: self.change_direction(-1, 0))
         self.window.bind('<Right>', lambda event: self.change_direction(1, 0))
 
-        self.score_label = self.canvas.create_text(self.WIDTH/2, 50, text="Score: 0", font=("Arial", 24), fill="black")
+        self.score_label = self.canvas.create_text(self.WIDTH/2, 50, text="Score: 0", font=("VCR OSD Mono", 24), fill="black")
 
     def game(self):
         self.game_tick_timer = tktimer.Timer(self.game_speed/1000)
@@ -80,7 +80,7 @@ class Game:
                 name = self.name
                 f.write(self.name+":"+highscore)
         
-        text = self.canvas.create_text(self.WIDTH/2, self.HEIGHT/2, text=f"Game Over\nScore: {len(self.snake)}\nHighscore: {highscore} by {name}", font=("Arial", 36), fill="Red")
+        text = self.canvas.create_text(self.WIDTH/2, self.HEIGHT/2, text=f"Game Over\nScore: {len(self.snake)}\nHighscore: {highscore} by {name}\nPress space to restart", font=("VCR OSD Mono", 36), fill="black")
         
         self.window.bind('<space>', lambda event: self.restart())
 

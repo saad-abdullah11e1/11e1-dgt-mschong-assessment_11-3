@@ -56,7 +56,7 @@ class Game:
 
         self.window.resizable(False, False)
 
-        self.canvas = tk.Canvas(self.window, width=self.WIDTH, height=self.HEIGHT, background='white')
+        self.canvas = tk.Canvas(self.window, width=self.WIDTH, height=self.HEIGHT, background='#79b2d4')
 
         self.canvas.pack()
 
@@ -223,7 +223,7 @@ class Game:
         self.shooter_image = self.shooter_image.resize((30, 30))
         self.shooter_image = PIL.ImageTk.PhotoImage(self.shooter_image)
 
-        self.score_label = self.canvas.create_text(self.WIDTH/2, 50, text="Score: 0", font=("Arial", 24), fill="black")
+        self.score_label = self.canvas.create_text(self.WIDTH/2, 50, text="Score: 0", font=("VCR OSD Mono", 24), fill="white")
 
         # Since Tk is event based it doesn't support polling a key press (is_pressed("up"))
         # This means if the player holds the key the character will only move once
@@ -348,7 +348,7 @@ class Game:
                 name = self.name
                 f.write(self.name+":"+highscore)
 
-        self.canvas.create_text(self.WIDTH/2, self.HEIGHT/2, text=f"Game Over\nScore: {int(self.score)}\nHighscore: {highscore} by {name}", font=("Arial", 36), fill="Red")
+        self.canvas.create_text(self.WIDTH/2, self.HEIGHT/2, text=f"Game Over\nScore: {int(self.score)}\nHighscore: {highscore} by {name}\nPress space to restart", font=("VCR OSD Mono", 36), fill="white")
         
         # Space to Restart
         self.window.bind('<space>', lambda event: self.restart())

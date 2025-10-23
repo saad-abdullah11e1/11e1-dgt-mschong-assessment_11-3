@@ -50,7 +50,7 @@ class Game:
             for x in range(0, self.WIDTH+50, 50):
                 tile = self.canvas.create_image(x, y, image=self.floor_image, anchor="nw")
 
-        self.score_label = self.canvas.create_text(self.WIDTH/2, 50, text="Score: 0", font=("Arial", 24), fill="black")
+        self.score_label = self.canvas.create_text(self.WIDTH/2, 50, text="Score: 0", font=("VCR OSD Mono", 24), fill="black")
 
         #self.player = self.canvas.create_rectangle(100, 550, 150, 600, fill='blue', outline='blue')
 
@@ -96,7 +96,7 @@ class Game:
         
 
 
-        text = self.canvas.create_text(700, 400, text=f"Game Over\nScore: {(10*(self.game_speed-self.GAME_SPEED)):.0f}\nHighscore: {highscore} by {name}", font=("Arial", 36), fill="Red")
+        text = self.canvas.create_text(700, 400, text=f"Game Over\nScore: {(10*(self.game_speed-self.GAME_SPEED)):.0f}\nHighscore: {highscore} by {name}\nPress space to restart", font=("VCR OSD Mono", 36), fill="black")
         
         self.window.bind('<space>', lambda event: self.restart())
 

@@ -4,6 +4,7 @@ import games.dino
 import games.snake
 import games.shooter
 from PIL import Image, ImageTk
+import pyglet
 
 window = tk.Tk()
 
@@ -11,9 +12,11 @@ name = ""
 
 window.title("Games Compendium")
 
+pyglet.font.add_file('VCR.ttf')
+
 def game_frame(game, title, desc, photo):
     base_colour = "#5A5A5A"
-    hover_colour = "#8B8B8B"
+    hover_colour = "#474747"
 
     frame = tk.Frame(window, bg="#5A5A5A")
     # frame.pack(padx=20, pady=20)
