@@ -35,6 +35,8 @@ class Game:
     BIG_HELI_SPEED = 1
     BIG_HELI_MAX_HEALTH = 25
 
+    ANIM_SPEED = 0.1
+
     def __init__(self, root: tk.Tk, name):
         """Set up all the variables for the game."""
 
@@ -61,12 +63,45 @@ class Game:
         self.player_image = PIL.Image.open("snake.jpeg")
         self.player_image = self.player_image.resize((30, 30))
         self.player_image = PIL.ImageTk.PhotoImage(self.player_image)
-        self.player = self.canvas.create_image(self.WIDTH/2, self.HEIGHT/2, image=self.player_image, anchor="nw")
+
+        self.player_anim_state = 0
+
+        self.player_animations = [0, 1, 2, 3]
+
+        player_image = PIL.Image.open("sprites/shooter/Player/pixil-frame-0.png").resize((30, 30), PIL.Image.NEAREST)
+        self.player_animations[0] = PIL.ImageTk.PhotoImage(player_image)
+
+        player_image = PIL.Image.open("sprites/shooter/Player/pixil-frame-1.png").resize((30, 30), PIL.Image.NEAREST)
+        self.player_animations[1] = PIL.ImageTk.PhotoImage(player_image)
+
+        player_image = PIL.Image.open("sprites/shooter/Player/pixil-frame-2.png").resize((30, 30), PIL.Image.NEAREST)
+        self.player_animations[2] = PIL.ImageTk.PhotoImage(player_image)
+
+        player_image = PIL.Image.open("sprites/shooter/Player/pixil-frame-3.png").resize((30, 30), PIL.Image.NEAREST)
+        self.player_animations[3] = PIL.ImageTk.PhotoImage(player_image)
+
+        self.player = self.canvas.create_image(self.WIDTH/2, self.HEIGHT/2, image=self.player_animations[0], anchor="nw")
 
         # self.player = self.canvas.create_rectangle(self.WIDTH/2, self.HEIGHT/2, self.WIDTH/2+25, self.HEIGHT/2+25, fill="#00FF00", outline='#00FF00')
         
         # List of enemies
         self.enemies = []
+
+        self.enemy_anim_states = 0
+
+        self.enemy_animations = [0, 1, 2, 3]
+
+        enemy_image = PIL.Image.open("sprites/shooter/Enemy/pixil-frame-0.png").resize((30, 30), PIL.Image.NEAREST)
+        self.enemy_animations[0] = PIL.ImageTk.PhotoImage(enemy_image)
+
+        enemy_image = PIL.Image.open("sprites/shooter/Enemy/pixil-frame-1.png").resize((30, 30), PIL.Image.NEAREST)
+        self.enemy_animations[1] = PIL.ImageTk.PhotoImage(enemy_image)
+
+        enemy_image = PIL.Image.open("sprites/shooter/Enemy/pixil-frame-2.png").resize((30, 30), PIL.Image.NEAREST)
+        self.enemy_animations[2] = PIL.ImageTk.PhotoImage(enemy_image)
+
+        enemy_image = PIL.Image.open("sprites/shooter/Enemy/pixil-frame-3.png").resize((30, 30), PIL.Image.NEAREST)
+        self.enemy_animations[3] = PIL.ImageTk.PhotoImage(enemy_image)
 
         self.enemy_image = PIL.Image.open("snake.jpeg")
         self.enemy_image = self.enemy_image.resize((30, 30))
@@ -78,6 +113,79 @@ class Game:
 
         # Dictionary of all Big Helicopters contains their ID, timer and health
         self.big_helicopters = {}
+
+        self.big_heli_anim_states = 0
+
+        self.big_heli_animations = [[0, 1, 2, 3], [0, 1, 2, 3], [0, 1, 2, 3], [0, 1, 2, 3], [0, 1, 2, 3], [0, 1, 2, 3]]
+
+        big_heli_image = PIL.Image.open("sprites/shooter/Boss_0/pixil-frame-0.png").resize((50, 75), PIL.Image.NEAREST)
+        self.big_heli_animations[0][0] = PIL.ImageTk.PhotoImage(big_heli_image)
+
+        big_heli_image = PIL.Image.open("sprites/shooter/Boss_0/pixil-frame-1.png").resize((50, 75), PIL.Image.NEAREST)
+        self.big_heli_animations[0][1] = PIL.ImageTk.PhotoImage(big_heli_image)
+
+        big_heli_image = PIL.Image.open("sprites/shooter/Boss_0/pixil-frame-2.png").resize((50, 75), PIL.Image.NEAREST)
+        self.big_heli_animations[0][2] = PIL.ImageTk.PhotoImage(big_heli_image)
+
+        big_heli_image = PIL.Image.open("sprites/shooter/Boss_0/pixil-frame-3.png").resize((50, 75), PIL.Image.NEAREST)
+        self.big_heli_animations[0][3] = PIL.ImageTk.PhotoImage(big_heli_image)
+
+
+
+        big_heli_image = PIL.Image.open("sprites/shooter/Boss_1/pixil-frame-0.png").resize((50, 75), PIL.Image.NEAREST)
+        self.big_heli_animations[1][0] = PIL.ImageTk.PhotoImage(big_heli_image)
+
+        big_heli_image = PIL.Image.open("sprites/shooter/Boss_1/pixil-frame-1.png").resize((50, 75), PIL.Image.NEAREST)
+        self.big_heli_animations[1][1] = PIL.ImageTk.PhotoImage(big_heli_image)
+
+        big_heli_image = PIL.Image.open("sprites/shooter/Boss_1/pixil-frame-2.png").resize((50, 75), PIL.Image.NEAREST)
+        self.big_heli_animations[1][2] = PIL.ImageTk.PhotoImage(big_heli_image)
+
+        big_heli_image = PIL.Image.open("sprites/shooter/Boss_1/pixil-frame-3.png").resize((50, 75), PIL.Image.NEAREST)
+        self.big_heli_animations[1][3] = PIL.ImageTk.PhotoImage(big_heli_image)
+
+
+
+        big_heli_image = PIL.Image.open("sprites/shooter/Boss_2/pixil-frame-0.png").resize((50, 75), PIL.Image.NEAREST)
+        self.big_heli_animations[2][0] = PIL.ImageTk.PhotoImage(big_heli_image)
+
+        big_heli_image = PIL.Image.open("sprites/shooter/Boss_2/pixil-frame-1.png").resize((50, 75), PIL.Image.NEAREST)
+        self.big_heli_animations[2][1] = PIL.ImageTk.PhotoImage(big_heli_image)
+
+        big_heli_image = PIL.Image.open("sprites/shooter/Boss_2/pixil-frame-2.png").resize((50, 75), PIL.Image.NEAREST)
+        self.big_heli_animations[2][2] = PIL.ImageTk.PhotoImage(big_heli_image)
+
+        big_heli_image = PIL.Image.open("sprites/shooter/Boss_2/pixil-frame-3.png").resize((50, 75), PIL.Image.NEAREST)
+        self.big_heli_animations[2][3] = PIL.ImageTk.PhotoImage(big_heli_image)
+
+
+
+        big_heli_image = PIL.Image.open("sprites/shooter/Boss_3/pixil-frame-0.png").resize((50, 75), PIL.Image.NEAREST)
+        self.big_heli_animations[3][0] = PIL.ImageTk.PhotoImage(big_heli_image)
+
+        big_heli_image = PIL.Image.open("sprites/shooter/Boss_3/pixil-frame-1.png").resize((50, 75), PIL.Image.NEAREST)
+        self.big_heli_animations[3][1] = PIL.ImageTk.PhotoImage(big_heli_image)
+
+        big_heli_image = PIL.Image.open("sprites/shooter/Boss_3/pixil-frame-2.png").resize((50, 75), PIL.Image.NEAREST)
+        self.big_heli_animations[3][2] = PIL.ImageTk.PhotoImage(big_heli_image)
+
+        big_heli_image = PIL.Image.open("sprites/shooter/Boss_3/pixil-frame-3.png").resize((50, 75), PIL.Image.NEAREST)
+        self.big_heli_animations[3][3] = PIL.ImageTk.PhotoImage(big_heli_image)
+
+
+
+        big_heli_image = PIL.Image.open("sprites/shooter/Boss_4/pixil-frame-0.png").resize((50, 75), PIL.Image.NEAREST)
+        self.big_heli_animations[4][0] = PIL.ImageTk.PhotoImage(big_heli_image)
+
+        big_heli_image = PIL.Image.open("sprites/shooter/Boss_4/pixil-frame-1.png").resize((50, 75), PIL.Image.NEAREST)
+        self.big_heli_animations[4][1] = PIL.ImageTk.PhotoImage(big_heli_image)
+
+        big_heli_image = PIL.Image.open("sprites/shooter/Boss_4/pixil-frame-2.png").resize((50, 75), PIL.Image.NEAREST)
+        self.big_heli_animations[4][2] = PIL.ImageTk.PhotoImage(big_heli_image)
+
+        big_heli_image = PIL.Image.open("sprites/shooter/Boss_4/pixil-frame-3.png").resize((50, 75), PIL.Image.NEAREST)
+        self.big_heli_animations[4][3] = PIL.ImageTk.PhotoImage(big_heli_image)
+
 
         self.big_heli_image = PIL.Image.open("snake.jpeg")
         self.big_heli_image = self.big_heli_image.resize((50, 75))
@@ -94,6 +202,22 @@ class Game:
 
         # Dictionary of shooters, contains ID, Timer
         self.shooters = {}
+
+        self.shooter_anim_states = 0
+
+        self.shooter_animations = [0, 1, 2, 3]
+
+        shooter_image = PIL.Image.open("sprites/shooter/Enemy Shooter/pixil-frame-0.png").resize((30, 30), PIL.Image.NEAREST)
+        self.shooter_animations[0] = PIL.ImageTk.PhotoImage(shooter_image)
+
+        shooter_image = PIL.Image.open("sprites/shooter/Enemy Shooter/pixil-frame-1.png").resize((30, 30), PIL.Image.NEAREST)
+        self.shooter_animations[1] = PIL.ImageTk.PhotoImage(shooter_image)
+
+        shooter_image = PIL.Image.open("sprites/shooter/Enemy Shooter/pixil-frame-2.png").resize((30, 30), PIL.Image.NEAREST)
+        self.shooter_animations[2] = PIL.ImageTk.PhotoImage(shooter_image)
+
+        shooter_image = PIL.Image.open("sprites/shooter/Enemy Shooter/pixil-frame-3.png").resize((30, 30), PIL.Image.NEAREST)
+        self.shooter_animations[3] = PIL.ImageTk.PhotoImage(shooter_image)
 
         self.shooter_image = PIL.Image.open("snake.jpeg")
         self.shooter_image = self.shooter_image.resize((30, 30))
@@ -114,8 +238,10 @@ class Game:
     def game(self):
         # Timers for enemy spawning
         self.enemy_spawn_timer = tktimer.Timer(10)
-        self.big_helicopter_spawn_timer = tktimer.Timer(60)
+        self.big_helicopter_spawn_timer = tktimer.Timer(1.60)
         self.shooter_spawn_timer = tktimer.Timer(30)
+
+        self.anim_timer = tktimer.Timer(self.ANIM_SPEED)
 
         # Score
         self.score = 0
@@ -137,6 +263,27 @@ class Game:
         if self.quit == True:
             self.quit_game()
             return
+        
+        if self.anim_timer.finished() == True:
+            self.anim_timer = tktimer.Timer(self.ANIM_SPEED)
+
+            if self.player_anim_state == 3:
+                self.player_anim_state = 0
+            else:
+                self.player_anim_state += 1
+
+            self.canvas.itemconfig(self.player, image=self.player_animations[self.player_anim_state])
+
+            if self.enemy_anim_states == 3:
+                self.enemy_anim_states = 0
+            else:
+                self.enemy_anim_states += 1
+
+            if self.shooter_anim_states == 3:
+                self.shooter_anim_states = 0
+            else:
+                self.shooter_anim_states += 1
+            
         
         # Whenever the timer finsihes, spawn the respective enemy and restart the timer
         if self.enemy_spawn_timer.finished() == True:
@@ -404,6 +551,8 @@ class Game:
         if x1 < 0 or x2 > self.WIDTH  or y2 > self.HEIGHT:
             self.canvas.delete(enemy)
             self.enemies.remove(enemy)
+        
+        self.canvas.itemconfig(enemy, image=self.enemy_animations[self.enemy_anim_states])
 
     def big_helicopter_ai(self, big_helicopter):
         """Big Helicopter AI. Every interval shoot out three bullets towards the player.
@@ -498,6 +647,8 @@ class Game:
                     self.canvas.delete(big_helicopter)
                     self.big_helicopters.pop(big_helicopter)
 
+        self.canvas.itemconfig(big_helicopter, image=self.big_heli_animations[int(5-(self.big_helicopters[big_helicopter][2])/5)][self.enemy_anim_states])
+
     def shooter_ai(self, shooter):
         """Shooter AI. Shoot bullets towards the player. Slowly drift down."""
         self.canvas.move(shooter, 0, 0.25)
@@ -526,6 +677,8 @@ class Game:
             if x1 < 0 or x2 > self.WIDTH or y2 > self.HEIGHT:
                 self.canvas.delete(shooter)
                 self.shooters.pop(shooter)
+
+        self.canvas.itemconfig(shooter, image=self.shooter_animations[self.shooter_anim_states])
 
     def restart(self):
         """Restart Game"""
