@@ -195,7 +195,7 @@ class Game:
         with open("shooter_highscore.txt") as f:
             name, highscore = f.read().split(':')
 
-        if int(highscore) < len(self.score):
+        if int(highscore) < self.score:
             with open("shooter_highscore.txt", "w") as f:
                 highscore = f"{len(self.score)}"
                 name = self.name
