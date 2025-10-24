@@ -9,9 +9,11 @@ import PIL
 class Game:
     """Game class that contains the game."""
 
+    # Window dimensions
     WIDTH = 1400
-    HEIGHT = 800
+    HEIGHT = 800 
 
+    # Constants
     GRAVITY = 0.4
     JUMP_VELOCITY = -12.5
     GAME_PACE = 0.00025
@@ -29,6 +31,9 @@ class Game:
 
         self.game_speed = self.GAME_SPEED
 
+        # The obstacle. 
+        # The images are stored in a variable to stop them from being garbage
+        # collected.
         self.obstacles = []
         self.obstacle_image = PIL.Image.open("sprites/obstacle.png")
         self.obstacle_image = self.obstacle_image.resize(
@@ -54,6 +59,7 @@ class Game:
 
         self.canvas.pack()
 
+        # Image of the floor and tiling it across the floor
         self.floor_image = PIL.Image.open("sprites/floor.png")
         self.floor_image = self.floor_image.resize((50, 50), PIL.Image.NEAREST)
         self.floor_image = PIL.ImageTk.PhotoImage(self.floor_image)
@@ -72,10 +78,12 @@ class Game:
             fill="black",
         )
 
+        # The current animation frame
         self.player_anim_state = 0
 
         self.player_animations = [1, 2, 3]
 
+        # Player frames
         player_image = PIL.Image.open("sprites/dino_stand.png")
         player_image = player_image.resize((51, 51), PIL.Image.NEAREST)
         self.player_animations[0] = PIL.ImageTk.PhotoImage(player_image)
@@ -98,15 +106,19 @@ class Game:
 
     def game(self):
         """Run the game."""
+        # Timers
         self.obstacle_spawn_timer = tktimer.Timer(
             random.randint(int(10 - self.game_speed / 10), 20) / 5
         )
         self.player_anim_timer = tktimer.Timer(self.PLAYER_ANIM_SPEED)
 
+        # Start the game loop
         self.game_loop()
 
     def quit_game(self):
         """Quit the game."""
+        # Open the high score document and write it if there is a new
+        # high score
         with open("dino_highscore.txt") as f:
             name, highscore = f.read().split(":")
 

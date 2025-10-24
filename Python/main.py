@@ -7,10 +7,13 @@ import games.shooter
 from PIL import Image, ImageTk
 import pyglet
 
+# Make window
 window = tk.Tk()
 
+# Name variable
 name = ""
 
+# Set tile
 window.title("Games Compendium")
 
 pyglet.font.add_file('VCR.ttf')
@@ -21,16 +24,19 @@ def game_frame(game, title, desc, photo):
     base_colour = "#5A5A5A"
     hover_colour = "#474747"
 
+    # Create frame for game
     frame = tk.Frame(window, bg="#5A5A5A")
-    # frame.pack(padx=20, pady=20)
 
+    # Label title
     label = tk.Label(frame, bg="#5A5A5A", text=title, font=('', 18))
     label.pack(pady=20)
 
+    # Photo
     photo_label = tk.Label(frame, image=photo)
 
     photo_label.pack()
 
+    # Play button
     button_frame = tk.Frame(frame, bg="#66B185")
     button_frame.pack(fill="both", expand=True)
 
@@ -49,6 +55,7 @@ def game_frame(game, title, desc, photo):
         desc_label = tk.Label(box, text=desc, wraplength=200)
         desc_label.pack(padx=15, pady=15)
 
+    # More info
     info_button_frame = tk.Frame(frame, bg="#5A5A5A")
     info_button_frame.pack(fill="both", expand=True)
 
@@ -128,7 +135,7 @@ def close_name():
     name = name_entry.get()
     input.destroy()
 
-
+# Name input
 input = tk.Toplevel(window)
 input.focus()
 
@@ -141,6 +148,7 @@ name_entry = tk.Entry(input, width=30)
 name_entry.pack(pady=5, padx=5)
 name_entry.focus_set()
 
+# Submit button
 submit_button = tk.Button(input, text="Submit", command=close_name)
 submit_button.pack(pady=5)
 
@@ -155,10 +163,12 @@ def run_game(game):
     """Run the game parameter."""
     game.Game(window, name).game()
 
-
+# Actual game menu
 name_label = tk.Label(window, text="Hello, " + name, font=("", 20))
 name_label.grid(row=1, column=2, pady=20)
 
+# Load game
+# Save photo as variable so it doesn't get GC'd
 dino = Image.open("dino.png")
 dino.thumbnail((350, 350))
 dino = ImageTk.PhotoImage(dino)
@@ -166,7 +176,7 @@ game_frame(
     games.dino,
     "Dino Game",
     "A fun game where you player as a dinosoar dodging boxes."
-    " Space to jump, down arrow to quickfall",
+    "Space to jump, down arrow to quickfall",
     dino
 ).grid(row=2, column=1, padx=10, pady=10)
 

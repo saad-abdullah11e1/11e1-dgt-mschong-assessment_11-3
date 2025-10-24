@@ -118,16 +118,16 @@ class Game:
         with open("snake_highscore.txt") as f:
             name, highscore = f.read().split(":")
 
-        if int(highscore) < len(self.snake):
+        if int(highscore) < len(self.snake)-3:
             with open("snake_highscore.txt", "w") as f:
-                highscore = f"{len(self.snake)}"
+                highscore = f"{len(self.snake)-3}"
                 name = self.name
                 f.write(self.name + ":" + highscore)
 
         self.canvas.create_text(
             self.WIDTH / 2,
             self.HEIGHT / 2,
-            text=f"Game Over\nScore: {len(self.snake)}\nHighscore: {highscore}"
+            text=f"Game Over\nScore: {len(self.snake)-3}\nHighscore: {highscore}"
             f" by {name}\nPress space to restart",
             font=("VCR OSD Mono", 36),
             fill="black",
@@ -173,7 +173,7 @@ class Game:
 
         self.canvas.tag_raise(self.score_label)
         self.canvas.itemconfig(
-            self.score_label, text=f"Score: {(len(self.snake)):.0f}"
+            self.score_label, text=f"Score: {(len(self.snake)-3):.0f}"
         )
 
         if self.quit is True:
